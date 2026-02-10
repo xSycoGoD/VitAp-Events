@@ -1,31 +1,33 @@
 /* ===========================
-   RESET & BASE
-   =========================== */
+   RESET
+=========================== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #f8f9fa;
-  color: #1a1a1a;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #111;
+  background: #f6f7f8;
   line-height: 1.6;
   overflow-x: hidden;
 }
 
 /* ===========================
    BACKGROUND
-   =========================== */
+=========================== */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url("https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2000");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.12;
+  background: url("https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2000")
+    center / cover no-repeat;
   z-index: -2;
 }
 
@@ -33,51 +35,49 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  background: white;
-  opacity: 0.92;
+  background: rgba(255, 255, 255, 0.94);
   z-index: -1;
 }
 
 /* ===========================
    LOGO
-   =========================== */
+=========================== */
 .logo-container {
   position: fixed;
   top: 24px;
   right: 32px;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .logo {
   height: 56px;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.12));
 }
 
 /* ===========================
-   PAGE LAYOUT
-   =========================== */
+   PAGE WRAPPER
+=========================== */
 .page-wrapper {
-  padding: 90px 24px 60px;
-  min-height: 100vh;
+  padding: 90px 20px 80px;
 }
 
 .content-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 /* ===========================
    HERO
-   =========================== */
+=========================== */
 .hero-section {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 64px;
 }
 
 .main-title {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .subtitle {
@@ -86,202 +86,174 @@ body::after {
 }
 
 /* ===========================
-   MAIN GRID
-   =========================== */
+   LAYOUT
+=========================== */
 .layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 32px;
   align-items: start;
 }
 
 /* ===========================
-   RECRUITMENT RAIL
-   =========================== */
+   RECRUITMENT
+=========================== */
 .recruitment-rail {
-  background: rgba(255,255,255,0.85);
+  background: #fff;
   border-radius: 14px;
-  padding: 18px;
-  border: 1px solid rgba(0,0,0,0.08);
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.06);
 }
 
 .rail-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.recruitment-empty {
+  font-size: 0.95rem;
+  color: #777;
+  text-align: center;
+  padding: 32px 12px;
 }
 
 .recruitment-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-.recruitment-empty {
-  font-size: 0.9rem;
-  color: #777;
-  font-style: italic;
+.recruitment-card {
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
   padding: 16px;
   background: #fafafa;
-  border-radius: 10px;
-  border: 1px dashed #ddd;
 }
 
-/* Recruitment cards */
-.recruitment-card {
-  background: white;
-  border-radius: 12px;
-  padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.recruitment-card .event-name {
+.recruitment-card h3 {
   font-size: 1rem;
-  font-weight: 600;
+  margin-bottom: 6px;
 }
 
-.recruitment-card .event-description {
-  font-size: 0.85rem;
+.recruitment-card p {
+  font-size: 0.9rem;
   color: #555;
 }
 
-.recruitment-card .register-btn {
-  align-self: flex-start;
-  margin-top: 4px;
-  padding: 6px 14px;
-  font-size: 0.85rem;
+.recruitment-card a {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
   border-radius: 6px;
+  font-size: 0.85rem;
 }
 
 /* ===========================
-   EVENTS SECTION
-   =========================== */
+   EVENTS
+=========================== */
 .events-section {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.date-group {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.date-heading {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-/* Event cards */
 .event-card {
-  background: rgba(255,255,255,0.88);
+  background: #fff;
   border-radius: 16px;
-  padding: 22px 26px;
-  border: 1px solid rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.event-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+  padding: 24px 26px;
+  border: 1px solid rgba(0,0,0,0.06);
 }
 
 .event-name {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.event-club {
-  font-size: 0.9rem;
-  color: #666;
   margin-bottom: 8px;
 }
 
 .event-description {
   font-size: 0.95rem;
-  color: #444;
-  line-height: 1.55;
+  color: #555;
+  margin-bottom: 14px;
 }
 
 .event-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 18px;
-  padding-top: 14px;
+  gap: 16px;
   border-top: 1px solid rgba(0,0,0,0.06);
+  padding-top: 14px;
 }
 
 .event-meta {
   display: flex;
-  gap: 20px;
+  gap: 18px;
   font-size: 0.9rem;
   color: #444;
 }
 
-.event-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* Buttons */
-.register-btn {
-  background: #000;
-  color: #fff;
-  padding: 8px 20px;
+.event-actions a,
+.event-actions button {
+  padding: 9px 18px;
   border-radius: 8px;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-
-.calendar-btn {
-  background: transparent;
-  border: 1px solid #ccc;
-  padding: 8px 16px;
-  border-radius: 8px;
+  border: none;
   font-size: 0.9rem;
   cursor: pointer;
 }
 
+.register-btn {
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+}
+
+.calendar-btn {
+  background: #f2f2f2;
+}
+
 /* ===========================
    EMPTY STATE
-   =========================== */
-.empty-state {
+=========================== */
+.no-events {
   text-align: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
   color: #666;
 }
 
-.empty-state h2 {
-  font-size: 1.5rem;
+.no-events h2 {
+  font-size: 1.6rem;
   margin-bottom: 6px;
 }
 
 /* ===========================
    FOOTER
-   =========================== */
+=========================== */
 .site-footer {
   margin-top: 80px;
-  padding: 24px 16px;
+  padding: 20px;
   text-align: center;
   font-size: 0.85rem;
-  color: #666;
-  border-top: 1px solid rgba(0,0,0,0.08);
+  color: #777;
 }
 
 /* ===========================
    RESPONSIVE
-   =========================== */
+=========================== */
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .recruitment-rail {
+    order: 2;
+  }
+
+  .events-section {
+    order: 1;
   }
 
   .logo-container {
@@ -289,23 +261,3 @@ body::after {
   }
 }
 
-@media (max-width: 600px) {
-  .main-title {
-    font-size: 2.2rem;
-  }
-
-  .event-card {
-    padding: 18px;
-  }
-
-  .event-bottom {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .event-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-}
