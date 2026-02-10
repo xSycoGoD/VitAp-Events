@@ -2,507 +2,325 @@
 // CONFIGURATION
 // ===========================
 const CONFIG = {
-    SHEET_ID: "19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U",
-    TAB_GID: "0" // Default first sheet, change if using a different tab
+  SHEET_ID: "19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U",
+  TAB_GID: "0"
+};
+
+const COL = {
+  name: 0,
+  date: 1,
+  start: 2,
+  end: 3,
+  venue: 4,
+  club: 5,
+  description: 6,
+  url: 7,
+  od: 8,
+  type: 9,
+  deadline: 10,
+  createdAt: 11,
+  gmailId: 12
 };
 
 // ===========================
-// GOOGLE SHEETS DATA INTEGRATION
+// DATA FETCHING
 // ===========================
-
-/**
- * Fetches event data from Google Sheets (public read-only access via CSV export)
- */
 async function fetchEventsFromSheet() {
-    try {
-        const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.TAB_GID}`;
-        const response = await fetch(url);
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.TAB_GID}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const rows = parseCSV(text).slice(1);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const csvText = await response.text();
-        const rows = parseCSV(csvText);
-
-        const events = rows.slice(1).map(row => {
-            const eventDate = row[1] || '';
-
-            return {
-                event_name: row[0] || 'TBA',
-                event_date: eventDate,
-                event_day: eventDate
-                    ? new Date(eventDate).toLocaleDateString(undefined, {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long'
-                      })
-                    : 'TBA',
-
-                start_time: row[2] || '',
-                end_time: row[3] || '',
-                venue: row[4] || 'TBA',
-                club: row[5] || '',
-                description: row[6] || '',
-                register_url: row[7] || '#',
-                od_status: row[8] || 'Not Mentioned',
-                source_email: row[9] || '',
-                gmail_message_id: row[10] || '',
-                created_at: row[11] || ''
-            };
-        }).filter(e => e.event_name && e.event_name !== 'TBA');
-
-        // Sort by event date + start time
-        events.sort((a, b) => {
-            const aDate = a.event_date ? new Date(`${a.event_date} ${a.start_time}`) : new Date('9999-12-31');
-            const bDate = b.event_date ? new Date(`${b.event_date} ${b.start_time}`) : new Date('9999-12-31');
-            return aDate - bDate;
-        });
-
-        return events;
-    } catch (error) {
-        console.error('Error fetching events:', error);
-        return [];
-    }
+  return rows.map(row => ({
+    name: row[COL.name] || "",
+    date: row[COL.date] || "",
+    start: row[COL.start] || "",
+    end: row[COL.end] || "",
+    venue: row[COL.venue] || "",
+    club: row[COL.club] || "",
+    description: row[COL.description] || "",
+    url: row[COL.url] || "",
+    od: row[COL.od] || "",
+    type: row[COL.type] || "event",
+    deadline: row[COL.deadline] || "",
+    createdAt: row[COL.createdAt] || ""
+  }));
 }
 
-
-/**
- * Parses CSV text into array of arrays
- * Handles quoted fields and commas within quotes
- */
+// ===========================
+// CSV PARSER
+// ===========================
 function parseCSV(csvText) {
-    const rows = [];
-    let currentRow = [];
-    let currentField = '';
-    let insideQuotes = false;
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
 
-    for (let i = 0; i < csvText.length; i++) {
-        const char = csvText[i];
-        const nextChar = csvText[i + 1];
+  for (let i = 0; i < csvText.length; i++) {
+    const c = csvText[i];
+    const n = csvText[i + 1];
 
-        if (char === '"') {
-            if (insideQuotes && nextChar === '"') {
-                // Escaped quote
-                currentField += '"';
-                i++; // Skip next quote
-            } else {
-                // Toggle quote state
-                insideQuotes = !insideQuotes;
-            }
-        } else if (char === ',' && !insideQuotes) {
-            // End of field
-            currentRow.push(currentField.trim());
-            currentField = '';
-        } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-            // End of row
-            if (char === '\r' && nextChar === '\n') {
-                i++; // Skip \n in \r\n
-            }
-            if (currentField || currentRow.length > 0) {
-                currentRow.push(currentField.trim());
-                rows.push(currentRow);
-                currentRow = [];
-                currentField = '';
-            }
-        } else {
-            currentField += char;
-        }
-    }
-
-    // Add last field and row if exists
-    if (currentField || currentRow.length > 0) {
-        currentRow.push(currentField.trim());
-        rows.push(currentRow);
-    }
-
-    return rows;
-}
-
-/**
- * Groups events by date
- */
-function groupEventsByDate(events) {
-    const grouped = {};
-    events.forEach(event => {
-        const dateKey = event.event_date || 'TBA';
-        if (!grouped[dateKey]) {
-            grouped[dateKey] = [];
-        }
-        grouped[dateKey].push(event);
-    });
-    return grouped;
-}
-
-/**
- * Formats OD status class name
- */
-function getODStatusClass(status) {
-    const statusLower = (status || '').toLowerCase();
-    if (statusLower.includes('provided') || statusLower.includes('yes')) {
-        return 'od-provided';
-    } else if (statusLower.includes('not provided') || statusLower.includes('no')) {
-        return 'od-not-provided';
+    if (c === '"') {
+      if (inQuotes && n === '"') {
+        field += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === ',' && !inQuotes) {
+      row.push(field.trim());
+      field = "";
+    } else if ((c === '\n' || c === '\r') && !inQuotes) {
+      if (field || row.length) {
+        row.push(field.trim());
+        rows.push(row);
+        row = [];
+        field = "";
+      }
     } else {
-        return 'od-not-mentioned';
+      field += c;
     }
+  }
+
+  if (field || row.length) {
+    row.push(field.trim());
+    rows.push(row);
+  }
+
+  return rows;
 }
 
-/**
- * Formats OD status display text
- */
-function getODStatusText(status) {
-    const statusLower = (status || '').toLowerCase();
-    if (statusLower.includes('provided') || statusLower.includes('yes')) {
-        return 'OD Provided';
-    } else if (statusLower.includes('not provided') || statusLower.includes('no')) {
-        return 'Not Provided';
-    } else {
-        return 'Not Mentioned';
-    }
+// ===========================
+// DATE UTILITIES (SAFE)
+// ===========================
+function parseEventDate(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
 }
-/**
- * Renders events to the DOM
- */
+
+// ===========================
+// EXPIRY LOGIC
+// ===========================
+function isExpired(event) {
+  const now = new Date();
+
+  if (event.type === "event") {
+    const dateObj = parseEventDate(event.date);
+
+    if (!dateObj) {
+      return now > new Date(new Date(event.createdAt).getTime() + 7 * 86400000);
+    }
+
+    const end = new Date(dateObj);
+
+    if (event.start || event.end) {
+      const endTime = event.end || event.start;
+      const [h, m] = endTime.split(":").map(Number);
+      end.setHours(h, m || 0, 0);
+    } else {
+      end.setHours(23, 59, 59);
+    }
+
+    return now > new Date(end.getTime() + 86400000);
+  }
+
+  if (event.type === "recruitment") {
+    if (event.deadline) {
+      return now > new Date(event.deadline);
+    }
+    return now > new Date(new Date(event.createdAt).getTime() + 7 * 86400000);
+  }
+
+  return true;
+}
+
+// ===========================
+// RENDERING
+// ===========================
 function renderEvents(events) {
-    const eventsSection = document.querySelector('.events-section');
-    if (!eventsSection) return;
+  const container = document.querySelector(".events-section");
+  if (!container) return;
+  container.innerHTML = "";
 
-    // Clear existing content
-    eventsSection.innerHTML = '';
+  const grouped = {};
 
-    // Group events by date
-    const groupedEvents = groupEventsByDate(events);
+  events.forEach(e => {
+    const key = e.type === "event" && e.date ? e.date : "__no_date__";
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(e);
+  });
 
-    // Render each date group
-    Object.entries(groupedEvents).forEach(([date, dateEvents]) => {
-        const dateGroup = document.createElement('div');
-        dateGroup.className = 'date-group';
-
-        // Create date heading
-        const dateHeading = document.createElement('h2');
-        dateHeading.className = 'date-heading';
-        dateHeading.textContent = dateEvents[0].event_day || date;
-        dateGroup.appendChild(dateHeading);
-
-        // Render each event in this date group
-        dateEvents.forEach(event => {
-           const startDateTime = {
-                    date: event.event_date,
-                    time: event.start_time
-                                };
-            const endDateTime = {
-                    date: event.event_date,
-                    time: event.end_time
-                              };
+  Object.entries(grouped).forEach(([date, list]) => {
+   const group = document.createElement("div");
+       group.className = date === "__no_date__" ? "date-group recruitment-group" : "date-group";
 
 
-            const eventCard = document.createElement('div');
-            eventCard.className = `event-card ${event.status === 'recent' ? 'event-recent' : ''}`;
-            eventCard.innerHTML = `
-                <div class="event-top">
-                    <h3 class="event-name">${event.event_name}</h3>
-                    <p class="event-description">${event.description}</p>
-                </div>
-                <div class="event-bottom">
-                    <div class="event-meta">
-                        <span class="meta-item">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                            ${event.venue}
-                        </span>
-                        <span class="meta-item">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            ${event.start_time}${event.end_time ? ' – ' + event.end_time : ''}
-                        </span>
-                    </div>
-                    <div class="event-actions">
-                        <span class="od-status ${getODStatusClass(event.od_status)}">${getODStatusText(event.od_status)}</span>
-                        <button class="calendar-btn" 
-                            data-event-name="${event.event_name}"
-                            data-event-date="${startDateTime.date}"
-                            data-start-time="${startDateTime.time}"
-                            data-end-time="${endDateTime.time}"
-                            data-venue="${event.venue}"
-                            data-description="${event.description}">Add to Calendar</button>
-                        <a href="${event.register_url}" class="register-btn">Register</a>
-                    </div>
-                </div>
-            `;
-
-            dateGroup.appendChild(eventCard);
+    if (date !== "__no_date__") {
+      const d = parseEventDate(date);
+      if (d) {
+        const h = document.createElement("h2");
+        h.className = "date-heading";
+        h.textContent = d.toLocaleDateString(undefined, {
+          weekday: "long",
+          day: "numeric",
+          month: "long"
         });
+        group.appendChild(h);
+      }
+    }
 
-        eventsSection.appendChild(dateGroup);
+    list.forEach(event => {
+      const card = document.createElement("div");
+      card.className = `event-card ${event.type === "recruitment" ? "recruitment-card" : ""}`;
+
+      card.innerHTML = `
+        <div class="event-top">
+          <h3 class="event-name">${event.name}</h3>
+          ${event.club ? `<p class="event-club">${event.club}</p>` : ""}
+          ${event.description ? `<p class="event-description">${event.description}</p>` : ""}
+        </div>
+
+        <div class="event-bottom">
+          <div class="event-meta">
+            ${event.venue ? `<span class="meta-item">📍 ${event.venue}</span>` : ""}
+            ${event.start ? `<span class="meta-item">🕒 ${event.start}${event.end ? " – " + event.end : ""}</span>` : ""}
+          </div>
+
+          <div class="event-actions">
+            ${event.od === "Provided" ? `<span class="od-status od-provided">OD Provided</span>` : ""}
+            ${
+              event.type === "event" && event.date && event.start
+                ? `<button class="calendar-btn"
+                    data-name="${event.name}"
+                    data-date="${event.date}"
+                    data-start="${event.start}"
+                    data-end="${event.end || ""}"
+                    data-venue="${event.venue || ""}"
+                    data-description="${event.description || ""}">
+                    Add to Calendar
+                  </button>`
+                : ""
+            }
+            ${event.url ? `<a href="${event.url}" class="register-btn">Register</a>` : ""}
+          </div>
+        </div>
+      `;
+
+      group.appendChild(card);
     });
 
-    // Re-attach event listeners to dynamically created buttons
-    attachEventListeners();
+    container.appendChild(group);
+  });
 
-    // Set up fade-in animations for event cards
-    setupCardAnimations();
+  attachEventListeners();
+  setupCardAnimations();
 }
 
-/**
- * Initializes the application
- */
-function classifyVisibleEvents(events) {
-    const now = new Date();
+// ===========================
+// CALENDAR (SAFE)
+// ===========================
+function normalizeEndTime(start, end) {
+  if (end) return end;
+  const [h, m] = start.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h + 1, m || 0, 0);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
-    return events
-        .map(event => {
-            if (!event.event_date || !event.end_time) {
-                return { ...event, status: 'upcoming' };
-            }
+function formatDateTime(date, time) {
+  const [y, m, d] = date.split("-");
+  const [h, min] = time.split(":");
+  return `${y}${m}${d}T${h}${min}00`;
+}
 
-            const eventEnd = new Date(`${event.event_date} ${event.end_time}`);
-            const diffHours = (now - eventEnd) / (1000 * 60 * 60);
+function addToCalendar(btn) {
+  const start = btn.dataset.start;
+  const end = normalizeEndTime(start, btn.dataset.end);
 
-            if (diffHours < 0) return { ...event, status: 'upcoming' };
-            if (diffHours <= 24) return { ...event, status: 'recent' };
+  const startDT = formatDateTime(btn.dataset.date, start);
+  const endDT = formatDateTime(btn.dataset.date, end);
 
-            return null;
-        })
-        .filter(Boolean);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: btn.dataset.name,
+    dates: `${startDT}/${endDT}`,
+    details: btn.dataset.description,
+    location: btn.dataset.venue
+  });
+
+  window.open(`https://calendar.google.com/calendar/render?${params}`, "_blank");
+}
+
+// ===========================
+// EVENTS & INIT
+// ===========================
+function attachEventListeners() {
+  document.querySelectorAll(".calendar-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      addToCalendar(btn);
+    });
+  });
 }
 
 async function initializeApp() {
-    const events = await fetchEventsFromSheet();
-    const visibleEvents = classifyVisibleEvents(events);
+  const events = await fetchEventsFromSheet();
 
-    if (visibleEvents.length > 0) {
-        renderEvents(visibleEvents);
-    } else {
-        const eventsSection = document.querySelector('.events-section');
-        eventsSection.innerHTML = `
-            <div class="no-events">
-                <h2>No upcoming events</h2>
-                <p>You're all caught up! New events will appear here as soon as clubs announce them.</p>
-            </div>
-        `;
-    }
-}
-
-
-
-// ===========================
-// CALENDAR INTEGRATION
-// ===========================
-
-/**
- * Formats date and time for calendar URLs
- * @param {string} date - Date in YYYY-MM-DD format
- * @param {string} time - Time in HH:MM format
- * @returns {string} - Formatted datetime string
- */
-function formatDateTime(date, time) {
-    const [year, month, day] = date.split('-');
-    const [hours, minutes] = time.split(':');
-    return `${year}${month}${day}T${hours}${minutes}00`;
-}
-
-/**
- * Detects user's platform/browser
- * @returns {string} - Platform identifier
- */
-function detectPlatform() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const platform = navigator.platform.toLowerCase();
-
-    // Check for Apple devices
-    if (platform.includes('mac') || platform.includes('iphone') || platform.includes('ipad') ||
-        userAgent.includes('safari') && !userAgent.includes('chrome')) {
-        return 'apple';
-    }
-
-    // Check for Outlook/Windows
-    if (platform.includes('win') || userAgent.includes('outlook') || userAgent.includes('office')) {
-        return 'outlook';
-    }
-
-    // Default to Google Calendar (most universal)
-    return 'google';
-}
-
-/**
- * Generates Google Calendar URL
- */
-function generateGoogleCalendarURL(eventData) {
-    const startDateTime = formatDateTime(eventData.date, eventData.startTime);
-    const endDateTime = formatDateTime(eventData.date, eventData.endTime);
-
-    const params = new URLSearchParams({
-        action: 'TEMPLATE',
-        text: eventData.name,
-        dates: `${startDateTime}/${endDateTime}`,
-        details: eventData.description,
-        location: eventData.venue
+  const visible = events
+    .filter(e => !isExpired(e))
+    .sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return parseEventDate(a.date) - parseEventDate(b.date);
     });
 
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
+  if (!visible.length) {
+    document.querySelector(".events-section").innerHTML = `
+      <div class="no-events">
+        <h2>No upcoming events</h2>
+        <p>You're all caught up.</p>
+      </div>`;
+    return;
+  }
 
-/**
- * Generates Outlook Calendar URL
- */
-function generateOutlookCalendarURL(eventData) {
-    const startDateTime = `${eventData.date}T${eventData.startTime}:00`;
-    const endDateTime = `${eventData.date}T${eventData.endTime}:00`;
-
-    const params = new URLSearchParams({
-        path: '/calendar/action/compose',
-        rru: 'addevent',
-        subject: eventData.name,
-        startdt: startDateTime,
-        enddt: endDateTime,
-        body: eventData.description,
-        location: eventData.venue
-    });
-
-    return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
-}
-
-/**
- * Generates Apple Calendar (iCal) URL
- */
-function generateAppleCalendarURL(eventData) {
-    // For Apple, we use webcal protocol with Google Calendar as it's most compatible
-    // Apple devices will automatically open in their native calendar app
-    return generateGoogleCalendarURL(eventData);
-}
-
-/**
- * Opens calendar based on detected platform
- */
-function addToCalendar(button) {
-    const eventData = {
-        name: button.dataset.eventName,
-        date: button.dataset.eventDate,
-        startTime: button.dataset.startTime,
-        endTime: button.dataset.endTime,
-        venue: button.dataset.venue,
-        description: button.dataset.description
-    };
-
-    const platform = detectPlatform();
-    let calendarURL;
-
-    switch (platform) {
-        case 'apple':
-            calendarURL = generateAppleCalendarURL(eventData);
-            break;
-        case 'outlook':
-            calendarURL = generateOutlookCalendarURL(eventData);
-            break;
-        case 'google':
-        default:
-            calendarURL = generateGoogleCalendarURL(eventData);
-            break;
-    }
-
-    // Open calendar in new tab
-    window.open(calendarURL, '_blank');
-}
-
-/**
- * Attaches event listeners to calendar and register buttons
- * Called after dynamic rendering and on initial page load
- */
-function attachEventListeners() {
-    // Calendar button listeners
-    document.querySelectorAll('.calendar-btn').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            // Add subtle click effect
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-
-            // Open calendar
-            addToCalendar(this);
-        });
-    });
-
-    // Register button listeners
-    document.querySelectorAll('.register-btn').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            // Add a subtle click effect
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-
-            // In a real application, this would navigate to registration page
-            console.log('Register button clicked for event');
-        });
-    });
+  renderEvents(visible);
 }
 
 // ===========================
-// EXISTING FUNCTIONALITY
+// ANIMATIONS
 // ===========================
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = "1";
+      e.target.style.transform = "translateY(0)";
+    }
+  });
+}, { threshold: 0.1 });
 
-// Add intersection observer for fade-in animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const cardObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-/**
- * Sets up fade-in animations for event cards
- * Called after dynamic rendering and on initial page load
- */
 function setupCardAnimations() {
-    document.querySelectorAll('.event-card').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        cardObserver.observe(card);
-    });
+  document.querySelectorAll(".event-card").forEach(card => {
+    card.style.opacity = "0";
+    card.style.transform = "translateY(20px)";
+    card.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+    observer.observe(card);
+  });
 }
 
-
-// Handle responsive logo sizing on scroll (optional enhancement)
-let lastScroll = 0;
-window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-
-    // Add subtle shadow to logo when scrolled
-    const logo = document.querySelector('.logo-container');
-    if (currentScroll > 100) {
-        logo.style.filter = 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))';
-    } else {
-        logo.style.filter = 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))';
-    }
-
-    lastScroll = currentScroll;
-});
-
 // ===========================
-// INITIALIZE APPLICATION
+// START
 // ===========================
-
-// Load events when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeApp);
 } else {
-    initializeApp();
+  initializeApp();
 }
+
+
+
+
+// IF you have made it this far 
+//copy this link and paste it as a url 
+//you can view events that have been logged after this project has been created 
+//https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
