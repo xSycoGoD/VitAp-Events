@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VIT-AP Campus Events</title>
 
+  <title>Campus Events · VIT-AP</title>
   <meta name="description" content="Official campus events and recruitment opportunities at VIT-AP." />
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
@@ -26,46 +29,40 @@
       <!-- Hero -->
       <header class="hero-section">
         <h1 class="main-title">Campus Events</h1>
-        <p class="subtitle">
-          Official events and recruitment opportunities at VIT-AP
-        </p>
+        <p class="subtitle">Official events and recruitment opportunities at VIT-AP</p>
       </header>
 
-      <!-- Main Layout -->
+      <!-- Layout -->
       <div class="layout">
 
-        <!-- Recruitment Rail -->
+        <!-- Recruitment (LEFT) -->
         <aside class="recruitment-rail">
           <h2 class="rail-title">Recruitment</h2>
 
+          <!-- JS replaces this if recruitment exists -->
+          <p class="recruitment-empty">No new recruitments right now.</p>
+
           <div class="recruitment-group">
-            <!-- Recruitment cards injected by JS -->
-            <p class="recruitment-empty">No new recruitments right now.</p>
+            <!-- recruitment cards injected by JS -->
           </div>
         </aside>
 
-        <!-- Events -->
+        <!-- Events (RIGHT) -->
         <main class="events-section">
-          <!-- Event cards injected by JS -->
-
-          <div class="empty-state">
-            <h2>No upcoming events</h2>
-            <p>You’re all caught up.</p>
-          </div>
+          <!-- events OR empty state injected by JS -->
         </main>
 
       </div>
     </div>
   </div>
 
+  <!-- Footer -->
   <footer class="site-footer">
     © 2026 Campus Events @ VIT-AP · Built by students · All rights reserved
   </footer>
 
+  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
-
-
-
 
