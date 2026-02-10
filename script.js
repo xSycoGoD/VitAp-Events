@@ -26,7 +26,8 @@ const COL = {
 // DATA FETCHING
 // ===========================
 async function fetchEventsFromSheet() {
-  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.TAB_GID}`;
+ const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.TAB_GID}&_=${Date.now()}`;
+
   const res = await fetch(url);
   const text = await res.text();
   const rows = parseCSV(text).slice(1);
@@ -325,4 +326,5 @@ if (document.readyState === "loading") {
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
