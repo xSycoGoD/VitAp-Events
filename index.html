@@ -8,6 +8,8 @@
   <meta name="description" content="Official campus events and recruitment opportunities at VIT-AP." />
 
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,7 +17,7 @@
 
 <body>
 
-  <!-- Fixed Logo (Top Right, Global) -->
+  <!-- Fixed Logo -->
   <div class="logo-container">
     <img src="vitap-logo.png" alt="VIT-AP University Logo" class="logo">
   </div>
@@ -29,43 +31,39 @@
         <p class="subtitle">Official events and recruitment opportunities at VIT-AP</p>
       </header>
 
-      <!-- Two-column layout -->
+      <!-- MAIN GRID -->
       <div class="main-grid">
 
-        <!-- Recruitment rail (LEFT) -->
+        <!-- Recruitment rail -->
         <aside class="recruitment-rail">
           <h2 class="rail-title">Recruitment</h2>
-          <div class="recruitment-group">
-  <p class="recruitment-empty">No new recruitments right now.</p>
-</div>
-
 
           <div class="recruitment-group">
-            <!-- recruitment-card injected by JS -->
+            <p class="recruitment-empty">No new recruitments right now.</p>
+            <!-- Recruitment cards injected here -->
           </div>
         </aside>
 
-        <!-- Events (PRIMARY) -->
-            <div class="events-section">
-            <div class="empty-state">
-                <h2>You’re all caught up 🎉</h2>
-                <p>New events will appear here as soon as clubs announce them.</p>
-            </div>
-            </div>
-
-
- 
-
+        <!-- Events section -->
+        <section class="events-section">
+          <div class="empty-state">
+            <h2>You’re all caught up 🎉</h2>
+            <p>New events will appear here as soon as clubs announce them.</p>
+          </div>
+          <!-- Event cards injected here -->
+        </section>
 
       </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
-
+  <!-- Footer -->
   <footer class="site-footer">
-  © 2026 Campus Events @ VIT-AP · Built by students · All rights reserved
-</footer>
+    © 2026 Campus Events @ VIT-AP · Built by students · All rights reserved
+  </footer>
+
+  <script src="script.js"></script>
 
 </body>
 </html>
+
