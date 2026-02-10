@@ -1,375 +1,264 @@
 /* ===========================
-   RESET & BASE STYLES
+   RESET & BASE
    =========================== */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f8f9fa;
-    color: #1a1a1a;
-    line-height: 1.6;
-    overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f6f7f9;
+  color: #1a1a1a;
+  line-height: 1.6;
+  overflow-x: hidden;
 }
 
 /* ===========================
    BACKGROUND
    =========================== */
 body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2000');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    z-index: -2;
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2000');
+  background-size: cover;
+  background-position: center;
+  z-index: -2;
 }
 
 body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.92);
-    z-index: -1;
-}
-
-/* Mobile background fix */
-@media (max-width: 768px) {
-    body::before {
-        background-attachment: scroll;
-    }
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: -1;
 }
 
 /* ===========================
    FIXED LOGO
    =========================== */
 .logo-container {
-    position: fixed;
-    top: 30px;
-    right: 40px;
-    z-index: 1000;
+  position: fixed;
+  top: 24px;
+  right: 32px;
+  z-index: 1000;
 }
 
 .logo {
-    height: 60px;
-    width: auto;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+  height: 56px;
+  width: auto;
 }
 
 /* ===========================
-   PAGE WRAPPER
+   PAGE LAYOUT
    =========================== */
 .page-wrapper {
-    min-height: 100vh;
-    padding: 80px 20px 60px;
+  min-height: 100vh;
+  padding: 100px 20px 60px;
 }
 
 .content-container {
-    max-width: 900px;
-    margin: 0 auto;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 /* ===========================
-   HERO SECTION
+   HERO
    =========================== */
 .hero-section {
-    text-align: center;
-    margin-bottom: 80px;
-    padding: 40px 20px;
+  text-align: center;
+  margin-bottom: 64px;
 }
 
 .main-title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: #000;
-    margin-bottom: 16px;
-    letter-spacing: -0.02em;
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
 .subtitle {
-    font-size: 1.125rem;
-    color: #666;
-    font-weight: 400;
+  font-size: 1.05rem;
+  color: #666;
 }
 
 /* ===========================
-   DATE GROUPS
+   MAIN GRID
    =========================== */
-.date-group {
-    margin-bottom: 60px;
-}
-
-.date-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #000;
-    margin-bottom: 24px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #e0e0e0;
+.main-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  align-items: start;
 }
 
 /* ===========================
-   EVENT CARDS
+   RECRUITMENT RAIL
    =========================== */
-.event-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    padding: 28px 32px;
-    margin-bottom: 20px;
-    transition: all 0.3s ease;
+.recruitment-rail {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 18px;
+  border: 1px solid rgba(0,0,0,0.06);
 }
 
-.event-card:hover {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+.recruitment-rail h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
 }
 
-.event-top {
-    margin-bottom: 20px;
-}
-
-.event-name {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #000;
-    margin-bottom: 8px;
-    line-height: 1.3;
-}
-
-.event-description {
-    font-size: 0.95rem;
-    color: #555;
-    line-height: 1.6;
-}
-
-.event-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.event-meta {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-.meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
-    color: #444;
-}
-
-.icon {
-    width: 16px;
-    height: 16px;
-    color: #666;
+.recruitment-empty {
+  font-size: 0.95rem;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 24px 8px;
 }
 
 /* ===========================
-   EVENT ACTIONS
+   EVENTS SECTION
    =========================== */
-.event-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.od-status {
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 4px;
-    white-space: nowrap;
-}
-
-.od-provided {
-    background: #e8f5e9;
-    color: #2e7d32;
-}
-
-.od-not-provided {
-    background: #ffebee;
-    color: #c62828;
-}
-
-.od-not-mentioned {
-    background: #f5f5f5;
-    color: #616161;
-}
-
-.calendar-btn {
-    padding: 8px 20px;
-    background: transparent;
-    color: #444;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    font-family: inherit;
-}
-
-.calendar-btn:hover {
-    background: #f5f5f5;
-    border-color: #999;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.calendar-btn:focus,
-.register-btn:focus {
-    outline: 2px solid #000;
-    outline-offset: 2px;
-}
-
-.register-btn {
-    padding: 8px 24px;
-    background: #000;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.register-btn:hover {
-    background: #333;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* ===========================
-   RECENTLY ENDED EVENTS
-   =========================== */
-.event-recent {
-    opacity: 0.6;
-}
-
-.event-recent::after {
-    content: "Recently ended";
-    font-size: 0.75rem;
-    color: #666;
-    display: block;
-    margin-top: 6px;
+.events-section {
+  min-height: 200px;
 }
 
 /* ===========================
    EMPTY STATE
    =========================== */
-.no-events {
-    text-align: center;
-    padding: 80px 20px;
-    color: #555;
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
 }
 
-.no-events h2 {
-    font-size: 1.6rem;
-    margin-bottom: 12px;
-    color: #000;
+.empty-state h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
-.no-events p {
-    font-size: 1rem;
-    color: #666;
+.empty-state p {
+  font-size: 1rem;
+  color: #666;
 }
 
 /* ===========================
-   RESPONSIVE DESIGN
+   DATE GROUP
    =========================== */
-@media (max-width: 768px) {
-    .logo-container {
-        top: 20px;
-        right: 20px;
-    }
+.date-group {
+  margin-bottom: 48px;
+}
 
-    .logo {
-        height: 50px;
-    }
+.date-heading {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
 
-    .page-wrapper {
-        padding: 60px 16px 40px;
-    }
+/* ===========================
+   EVENT CARD
+   =========================== */
+.event-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px 26px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-    .hero-section {
-        margin-bottom: 60px;
-        padding: 30px 16px;
-    }
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+}
 
-    .main-title {
-        font-size: 2.5rem;
-    }
+.event-name {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
 
-    .event-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+.event-description {
+  font-size: 0.95rem;
+  color: #555;
+}
 
-    .event-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
+.event-bottom {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.event-meta {
+  display: flex;
+  gap: 18px;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+/* ===========================
+   ACTIONS
+   =========================== */
+.event-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.register-btn {
+  padding: 8px 20px;
+  background: #000;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.register-btn:hover {
+  background: #333;
+}
+
+/* ===========================
+   RESPONSIVE
+   =========================== */
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .logo-container {
+    top: 16px;
+    right: 16px;
+  }
 }
 
 @media (max-width: 480px) {
-    .main-title {
-        font-size: 2rem;
-    }
+  .main-title {
+    font-size: 2.2rem;
+  }
 
-    .event-card {
-        padding: 20px;
-    }
+  .event-card {
+    padding: 20px;
+  }
 
-    .event-meta {
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-    }
-
-    .event-actions {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .register-btn,
-    .od-status {
-        width: 100%;
-        text-align: center;
-    }
+  .event-bottom {
+    flex-direction: column;
+  }
 }
-
-@media (min-width: 1200px) {
-    .content-container {
-        max-width: 1000px;
-    }
-
-    .main-title {
-        font-size: 4rem;
-    }
+.site-footer {
+  margin-top: 80px;
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #777;
 }
