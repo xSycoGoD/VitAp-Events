@@ -275,14 +275,15 @@ async function initializeApp() {
       return parseEventDate(a.date) - parseEventDate(b.date);
     });
 
-  if (!visible.length) {
-    document.querySelector(".events-section").innerHTML = `
-      <div class="no-events">
-        <h2>No upcoming events</h2>
-        <p>You're all caught up.</p>
-      </div>`;
-    return;
-  }
+ const empty = document.getElementById("events-empty");
+
+if (!visible.length) {
+  empty.style.display = "block";
+  return;
+}
+
+empty.style.display = "none";
+renderEvents(visible);
 
   renderEvents(visible);
 }
@@ -324,3 +325,4 @@ if (document.readyState === "loading") {
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
