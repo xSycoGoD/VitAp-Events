@@ -26,7 +26,9 @@ const COL = {
 // DATA FETCHING
 // ===========================
 async function fetchEventsFromSheet() {
- const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${CONFIG.TAB_GID}&_=${Date.now()}`;
+  const url =
+    `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export` +
+    `?format=csv&gid=${CONFIG.TAB_GID}&_=${Date.now()}`;
 
   const res = await fetch(url);
   const text = await res.text();
@@ -51,15 +53,15 @@ async function fetchEventsFromSheet() {
 // ===========================
 // CSV PARSER
 // ===========================
-function parseCSV(csvText) {
+function parseCSV(text) {
   const rows = [];
   let row = [];
   let field = "";
   let inQuotes = false;
 
-  for (let i = 0; i < csvText.length; i++) {
-    const c = csvText[i];
-    const n = csvText[i + 1];
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const n = text[i + 1];
 
     if (c === '"') {
       if (inQuotes && n === '"') {
@@ -92,7 +94,7 @@ function parseCSV(csvText) {
 }
 
 // ===========================
-// DATE UTILITIES (SAFE)
+// DATE UTILITIES
 // ===========================
 function parseEventDate(dateStr) {
   if (!dateStr) return null;
@@ -101,24 +103,24 @@ function parseEventDate(dateStr) {
 }
 
 // ===========================
-// EXPIRY LOGIC
+// EXPIRY LOGIC (SAFE)
 // ===========================
 function isExpired(event) {
   const now = new Date();
 
   if (event.type === "event") {
-    const dateObj = parseEventDate(event.date);
+    const d = parseEventDate(event.date);
 
-    if (!dateObj) {
+    if (!d) {
       return now > new Date(new Date(event.createdAt).getTime() + 7 * 86400000);
     }
 
-    const end = new Date(dateObj);
+    const end = new Date(d);
 
-    if (event.start || event.end) {
-      const endTime = event.end || event.start;
-      const [h, m] = endTime.split(":").map(Number);
-      end.setHours(h, m || 0, 0);
+    const time = event.end || event.start;
+    if (/^\d{1,2}:\d{2}$/.test(time || "")) {
+      const [h, m] = time.split(":").map(Number);
+      end.setHours(h, m, 0);
     } else {
       end.setHours(23, 59, 59);
     }
@@ -127,9 +129,7 @@ function isExpired(event) {
   }
 
   if (event.type === "recruitment") {
-    if (event.deadline) {
-      return now > new Date(event.deadline);
-    }
+    if (event.deadline) return now > new Date(event.deadline);
     return now > new Date(new Date(event.createdAt).getTime() + 7 * 86400000);
   }
 
@@ -139,71 +139,104 @@ function isExpired(event) {
 // ===========================
 // RENDERING
 // ===========================
-function renderEvents(events) {
-  const container = document.querySelector(".events-section");
-  if (!container) return;
-  container.innerHTML = "";
+function render(events) {
+  const eventsSection = document.querySelector(".events-section");
+  const emptyState = document.getElementById("events-empty");
+  const recruitmentRail = document.querySelector(".recruitment-group");
+
+  if (!eventsSection || !recruitmentRail) return;
+
+  const recruitments = events.filter(e => e.type === "recruitment");
+  const normalEvents = events.filter(e => e.type === "event");
+
+  // ---------- Recruitment ----------
+  recruitmentRail.innerHTML = "";
+
+  if (!recruitments.length) {
+    recruitmentRail.innerHTML =
+      `<p class="recruitment-empty">No new recruitments right now.</p>`;
+  } else {
+    recruitments.forEach(e => {
+      const card = document.createElement("div");
+      card.className = "event-card recruitment-card";
+
+      card.innerHTML = `
+        <h4 class="event-name">${e.name}</h4>
+        ${e.description ? `<p class="event-description">${e.description}</p>` : ""}
+        ${e.url ? `<a href="${e.url}" class="register-btn">Register</a>` : ""}
+      `;
+
+      recruitmentRail.appendChild(card);
+    });
+  }
+
+  // ---------- Events ----------
+  eventsSection.querySelectorAll(".date-group").forEach(e => e.remove());
+
+  if (!normalEvents.length) {
+    if (emptyState) emptyState.style.display = "block";
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = "none";
 
   const grouped = {};
-
-  events.forEach(e => {
-    const key = e.type === "event" && e.date ? e.date : "__no_date__";
+  normalEvents.forEach(e => {
+    const key = e.date || "__no_date__";
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(e);
   });
 
   Object.entries(grouped).forEach(([date, list]) => {
-   const group = document.createElement("div");
-       group.className = date === "__no_date__" ? "date-group recruitment-group" : "date-group";
+    const group = document.createElement("div");
+    group.className = "date-group";
 
-
-    if (date !== "__no_date__") {
-      const d = parseEventDate(date);
-      if (d) {
-        const h = document.createElement("h2");
-        h.className = "date-heading";
-        h.textContent = d.toLocaleDateString(undefined, {
-          weekday: "long",
-          day: "numeric",
-          month: "long"
-        });
-        group.appendChild(h);
-      }
+    const d = parseEventDate(date);
+    if (d) {
+      const h = document.createElement("h2");
+      h.className = "date-heading";
+      h.textContent = d.toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "numeric",
+        month: "long"
+      });
+      group.appendChild(h);
     }
 
-    list.forEach(event => {
+    list.forEach(e => {
       const card = document.createElement("div");
-      card.className = `event-card ${event.type === "recruitment" ? "recruitment-card" : ""}`;
+      card.className = "event-card";
 
       card.innerHTML = `
         <div class="event-top">
-          <h3 class="event-name">${event.name}</h3>
-          ${event.club ? `<p class="event-club">${event.club}</p>` : ""}
-          ${event.description ? `<p class="event-description">${event.description}</p>` : ""}
+          <h3 class="event-name">${e.name}</h3>
+          ${e.club ? `<p class="event-club">${e.club}</p>` : ""}
+          ${e.description ? `<p class="event-description">${e.description}</p>` : ""}
         </div>
 
         <div class="event-bottom">
           <div class="event-meta">
-            ${event.venue ? `<span class="meta-item">📍 ${event.venue}</span>` : ""}
-            ${event.start ? `<span class="meta-item">🕒 ${event.start}${event.end ? " – " + event.end : ""}</span>` : ""}
+            ${e.venue ? `<span class="meta-item">📍 ${e.venue}</span>` : ""}
+            ${e.start ? `<span class="meta-item">🕒 ${e.start}${e.end ? " – " + e.end : ""}</span>` : ""}
           </div>
 
           <div class="event-actions">
-            ${event.od === "Provided" ? `<span class="od-status od-provided">OD Provided</span>` : ""}
+            ${e.od === "Provided" ? `<span class="od-status od-provided">OD Provided</span>` : ""}
             ${
-              event.type === "event" && event.date && event.start
+              /^\d{4}-\d{2}-\d{2}$/.test(e.date) &&
+              /^\d{1,2}:\d{2}$/.test(e.start)
                 ? `<button class="calendar-btn"
-                    data-name="${event.name}"
-                    data-date="${event.date}"
-                    data-start="${event.start}"
-                    data-end="${event.end || ""}"
-                    data-venue="${event.venue || ""}"
-                    data-description="${event.description || ""}">
+                    data-name="${e.name}"
+                    data-date="${e.date}"
+                    data-start="${e.start}"
+                    data-end="${e.end || ""}"
+                    data-venue="${e.venue || ""}"
+                    data-description="${e.description || ""}">
                     Add to Calendar
                   </button>`
                 : ""
             }
-            ${event.url ? `<a href="${event.url}" class="register-btn">Register</a>` : ""}
+            ${e.url ? `<a href="${e.url}" class="register-btn">Register</a>` : ""}
           </div>
         </div>
       `;
@@ -211,22 +244,20 @@ function renderEvents(events) {
       group.appendChild(card);
     });
 
-    container.appendChild(group);
+    eventsSection.appendChild(group);
   });
 
-  attachEventListeners();
+  attachCalendarListeners();
   setupCardAnimations();
 }
 
 // ===========================
-// CALENDAR (SAFE)
+// CALENDAR
 // ===========================
 function normalizeEndTime(start, end) {
-  if (end) return end;
+  if (end && /^\d{1,2}:\d{2}$/.test(end)) return end;
   const [h, m] = start.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h + 1, m || 0, 0);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function formatDateTime(date, time) {
@@ -253,40 +284,13 @@ function addToCalendar(btn) {
   window.open(`https://calendar.google.com/calendar/render?${params}`, "_blank");
 }
 
-// ===========================
-// EVENTS & INIT
-// ===========================
-function attachEventListeners() {
+function attachCalendarListeners() {
   document.querySelectorAll(".calendar-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
+    btn.onclick = e => {
       e.preventDefault();
       addToCalendar(btn);
-    });
+    };
   });
-}
-
-async function initializeApp() {
-  const events = await fetchEventsFromSheet();
-
-  const visible = events
-    .filter(e => !isExpired(e))
-    .sort((a, b) => {
-      if (!a.date) return 1;
-      if (!b.date) return -1;
-      return parseEventDate(a.date) - parseEventDate(b.date);
-    });
-
- const empty = document.getElementById("events-empty");
-
-if (!visible.length) {
-  empty.style.display = "block";
-  return;
-}
-
-empty.style.display = "none";
-renderEvents(visible);
-
-  renderEvents(visible);
 }
 
 // ===========================
@@ -313,6 +317,12 @@ function setupCardAnimations() {
 // ===========================
 // START
 // ===========================
+async function initializeApp() {
+  const events = await fetchEventsFromSheet();
+  const visible = events.filter(e => !isExpired(e));
+  render(visible);
+}
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initializeApp);
 } else {
@@ -322,10 +332,12 @@ if (document.readyState === "loading") {
 
 
 
+
 // IF you have made it this far 
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
