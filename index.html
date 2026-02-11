@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Basic Meta -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Campus Events · VIT-AP</title>
   <meta name="description" content="Official campus events and recruitment opportunities at VIT-AP." />
+
+  <!-- SEO / Social -->
+  <meta property="og:title" content="Campus Events · VIT-AP" />
+  <meta property="og:description" content="Stay updated with official events and recruitment opportunities at VIT-AP." />
+  <meta property="og:type" content="website" />
+
+  <!-- Favicon (optional if you add one later) -->
+  <!-- <link rel="icon" href="favicon.ico" /> -->
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,51 +27,76 @@
 
 <body>
 
-  <!-- Fixed Logo -->
-  <div class="logo-container">
-    <img src="vitap-logo.png" alt="VIT-AP University Logo" class="logo">
-  </div>
+  <!-- Header / Logo -->
+  <header class="site-header">
+    <div class="logo-container">
+      <img src="vitap-logo.png" alt="VIT-AP University Logo" class="logo" />
+    </div>
+  </header>
 
-  <div class="page-wrapper">
+  <!-- Main Content -->
+  <main class="page-wrapper">
     <div class="content-container">
 
       <!-- Hero -->
-      <header class="hero-section">
+      <section class="hero-section">
         <h1 class="main-title">Campus Events</h1>
-        <p class="subtitle">Official events and recruitment opportunities at VIT-AP</p>
-      </header>
+        <p class="subtitle">
+          Official events and recruitment opportunities at VIT-AP
+        </p>
+      </section>
 
-      <!-- Layout -->
-      <div class="layout">
+      <!-- Two Column Layout -->
+      <section class="layout" aria-label="Events and recruitment layout">
 
-        <!-- Recruitment (LEFT) -->
-        <aside class="recruitment-rail">
-          <h2 class="rail-title">Recruitment</h2>
+        <!-- Recruitment -->
+        <aside class="recruitment-rail" aria-labelledby="recruitment-heading">
+          <h2 id="recruitment-heading" class="rail-title">
+            Recruitment
+          </h2>
 
-          <!-- JS replaces this if recruitment exists -->
-          <p class="recruitment-empty">No new recruitments right now.</p>
+          <!-- Empty state (JS will remove if needed) -->
+          <div class="recruitment-empty-state">
+            <p>No new recruitments right now.</p>
+          </div>
 
           <div class="recruitment-group">
-            <!-- recruitment cards injected by JS -->
+            <!-- Injected by JS -->
           </div>
         </aside>
 
-        <!-- Events (RIGHT) -->
-        <main class="events-section">
-          <!-- events OR empty state injected by JS -->
-        </main>
+        <!-- Events -->
+        <section class="events-section" aria-labelledby="events-heading">
+          <h2 id="events-heading" class="visually-hidden">
+            Upcoming Events
+          </h2>
 
-      </div>
+          <div class="events-container">
+            <!-- Injected by JS -->
+            <div class="loading-state">
+              <p>Loading events…</p>
+            </div>
+          </div>
+        </section>
+
+      </section>
+
     </div>
-  </div>
+  </main>
 
   <!-- Footer -->
   <footer class="site-footer">
-    © 2026 Campus Events @ VIT-AP · Built by students · All rights reserved
+    <div class="footer-inner">
+      <p>
+        © 2026 Campus Events @ VIT-AP · Built by students · All rights reserved
+      </p>
+    </div>
   </footer>
 
   <!-- Script -->
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
+
 </body>
 </html>
+
 
