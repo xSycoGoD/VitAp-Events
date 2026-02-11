@@ -10,7 +10,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf6pjxpYLy_LM2kMAN7
 // ===========================
 
 async function fetchEvents() {
-  const url = "YOUR_SCRIPT_URL_HERE";
+  const url = "https://script.google.com/macros/s/AKfycbyf6pjxpYLy_LM2kMAN7SmevYd8yai9Xu0ZWsWdZOI0aoN5S9b1qdhVTLoCVDOxSUKt/exec";
 
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch data");
@@ -290,6 +290,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
