@@ -10,10 +10,30 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf6pjxpYLy_LM2kMAN7
 // ===========================
 
 async function fetchEvents() {
-  const res = await fetch(SCRIPT_URL + "?_=" + Date.now());
-  if (!res.ok) throw new Error("Failed to fetch events");
-  return await res.json();
+  const url = "YOUR_SCRIPT_URL_HERE";
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch data");
+
+  const data = await res.json();
+
+  // Normalize field names
+  return data.map(row => ({
+    name: row.event_name || "",
+    date: row.event_date || "",
+    start: row.start_time || "",
+    end: row.end_time || "",
+    venue: row.venue || "",
+    club: row.club || "",
+    description: row.description || "",
+    url: row.registration_url || "",
+    od: row.od_status || "",
+    type: row.type || "event",
+    deadline: row.deadline || "",
+    createdAt: row.created_at || ""
+  }));
 }
+
 
 
 // ===========================
@@ -270,6 +290,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
