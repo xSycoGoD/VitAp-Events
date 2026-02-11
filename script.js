@@ -1,5 +1,5 @@
 // ===========================
-// CONFIGURATION
+// CONFIG
 // ===========================
 const CONFIG = {
   SHEET_ID: "19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U",
@@ -23,7 +23,7 @@ const COL = {
 };
 
 // ===========================
-// DATA FETCHING
+// DATA FETCH
 // ===========================
 async function fetchEventsFromSheet() {
   const url =
@@ -31,6 +31,8 @@ async function fetchEventsFromSheet() {
     `?format=csv&gid=${CONFIG.TAB_GID}&_=${Date.now()}`;
 
   const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch sheet");
+
   const text = await res.text();
   const rows = parseCSV(text).slice(1);
 
@@ -103,7 +105,7 @@ function parseEventDate(dateStr) {
 }
 
 // ===========================
-// EXPIRY LOGIC (SAFE)
+// EXPIRY LOGIC
 // ===========================
 function isExpired(event) {
   const now = new Date();
@@ -112,12 +114,13 @@ function isExpired(event) {
     const d = parseEventDate(event.date);
 
     if (!d) {
+      if (!event.createdAt) return false;
       return now > new Date(new Date(event.createdAt).getTime() + 7 * 86400000);
     }
 
     const end = new Date(d);
-
     const time = event.end || event.start;
+
     if (/^\d{1,2}:\d{2}$/.test(time || "")) {
       const [h, m] = time.split(":").map(Number);
       end.setHours(h, m, 0);
@@ -130,40 +133,45 @@ function isExpired(event) {
 
   if (event.type === "recruitment") {
     if (event.deadline) return now > new Date(event.deadline);
+    if (!event.createdAt) return false;
     return now > new Date(new Date(event.createdAt).getTime() + 7 * 86400000);
   }
 
-  return true;
+  return false;
 }
 
 // ===========================
-// RENDERING
+// RENDER
 // ===========================
 function render(events) {
   const eventsSection = document.querySelector(".events-section");
-  const emptyState = document.getElementById("events-empty");
   const recruitmentRail = document.querySelector(".recruitment-group");
+  const emptyState = document.getElementById("events-empty");
 
   if (!eventsSection || !recruitmentRail) return;
 
   const recruitments = events.filter(e => e.type === "recruitment");
   const normalEvents = events.filter(e => e.type === "event");
 
-  // ---------- Recruitment ----------
+  // Clear previous render
   recruitmentRail.innerHTML = "";
+  eventsSection.querySelectorAll(".date-group").forEach(g => g.remove());
 
+  // ---------- Recruitment ----------
   if (!recruitments.length) {
     recruitmentRail.innerHTML =
-      `<p class="recruitment-empty">No new recruitments right now.</p>`;
+      `<div class="recruitment-empty-state">
+         <p>No new recruitments right now.</p>
+       </div>`;
   } else {
     recruitments.forEach(e => {
       const card = document.createElement("div");
-      card.className = "event-card recruitment-card";
+      card.className = "recruitment-card";
 
       card.innerHTML = `
-        <h4 class="event-name">${e.name}</h4>
-        ${e.description ? `<p class="event-description">${e.description}</p>` : ""}
-        ${e.url ? `<a href="${e.url}" class="register-btn">Register</a>` : ""}
+        <h3>${e.name}</h3>
+        ${e.description ? `<p>${e.description}</p>` : ""}
+        ${e.url ? `<a href="${e.url}" target="_blank">Register</a>` : ""}
       `;
 
       recruitmentRail.appendChild(card);
@@ -171,8 +179,6 @@ function render(events) {
   }
 
   // ---------- Events ----------
-  eventsSection.querySelectorAll(".date-group").forEach(e => e.remove());
-
   if (!normalEvents.length) {
     if (emptyState) emptyState.style.display = "block";
     return;
@@ -216,8 +222,8 @@ function render(events) {
 
         <div class="event-bottom">
           <div class="event-meta">
-            ${e.venue ? `<span class="meta-item">📍 ${e.venue}</span>` : ""}
-            ${e.start ? `<span class="meta-item">🕒 ${e.start}${e.end ? " – " + e.end : ""}</span>` : ""}
+            ${e.venue ? `<span>📍 ${e.venue}</span>` : ""}
+            ${e.start ? `<span>🕒 ${e.start}${e.end ? " – " + e.end : ""}</span>` : ""}
           </div>
 
           <div class="event-actions">
@@ -236,7 +242,7 @@ function render(events) {
                   </button>`
                 : ""
             }
-            ${e.url ? `<a href="${e.url}" class="register-btn">Register</a>` : ""}
+            ${e.url ? `<a href="${e.url}" class="register-btn" target="_blank">Register</a>` : ""}
           </div>
         </div>
       `;
@@ -306,7 +312,7 @@ const observer = new IntersectionObserver(entries => {
 }, { threshold: 0.1 });
 
 function setupCardAnimations() {
-  document.querySelectorAll(".event-card").forEach(card => {
+  document.querySelectorAll(".event-card, .recruitment-card").forEach(card => {
     card.style.opacity = "0";
     card.style.transform = "translateY(20px)";
     card.style.transition = "opacity 0.6s ease, transform 0.6s ease";
@@ -318,9 +324,13 @@ function setupCardAnimations() {
 // START
 // ===========================
 async function initializeApp() {
-  const events = await fetchEventsFromSheet();
-  const visible = events.filter(e => !isExpired(e));
-  render(visible);
+  try {
+    const events = await fetchEventsFromSheet();
+    const visible = events.filter(e => !isExpired(e));
+    render(visible);
+  } catch (err) {
+    console.error("Initialization failed:", err);
+  }
 }
 
 if (document.readyState === "loading") {
@@ -332,11 +342,11 @@ if (document.readyState === "loading") {
 
 
 
-
 // IF you have made it this far 
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
