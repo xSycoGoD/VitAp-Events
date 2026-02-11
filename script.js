@@ -2,22 +2,15 @@
 // CONFIG
 // ===========================
 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFnHe6PghzfDeYkHUV5dSFqJjbRCjtHDGw6poMy489NUtVIvejKr4VusZNWP-vbXkX/exec";
 
-
-
-// ===========================
-// FETCH DATA (JSON)
-// ===========================
 
 async function fetchEvents() {
-  const url = "https://script.google.com/macros/s/AKfycbzFnHe6PghzfDeYkHUV5dSFqJjbRCjtHDGw6poMy489NUtVIvejKr4VusZNWP-vbXkX/exec";
-
-  const res = await fetch(url);
+  const res = await fetch(SCRIPT_URL);
   if (!res.ok) throw new Error("Failed to fetch data");
 
   const data = await res.json();
 
-  // Normalize field names
   return data.map(row => ({
     name: row.event_name || "",
     date: row.event_date || "",
