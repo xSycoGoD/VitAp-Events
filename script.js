@@ -67,7 +67,7 @@ function render(events) {
 
   if (!eventsContainer || !recruitmentGroup) return;
 
-  // Hard reset
+  // Reset
   eventsContainer.innerHTML = "";
   recruitmentGroup.innerHTML = "";
 
@@ -81,7 +81,8 @@ function render(events) {
   if (recruitments.length === 0) {
     recruitmentGroup.innerHTML = `
       <div class="recruitment-empty-state">
-        <p>No new recruitments right now.</p>
+        <p>No recruitments right now.</p>
+        <small>Check back later.</small>
       </div>
     `;
   } else {
@@ -106,8 +107,8 @@ function render(events) {
   if (normalEvents.length === 0) {
     eventsContainer.innerHTML = `
       <div class="no-events">
-        <h2>No upcoming events</h2>
-        <p>You're all caught up.</p>
+        <h2>No events right now</h2>
+        <p>Come back later for new updates.</p>
       </div>
     `;
     return;
@@ -155,21 +156,6 @@ function render(events) {
           </div>
 
           <div class="event-actions">
-            ${e.od_status === "Provided" ? `<span class="od-status">OD Provided</span>` : ""}
-            ${
-              /^\d{4}-\d{2}-\d{2}$/.test(e.event_date || "") &&
-              /^\d{1,2}:\d{2}/.test(e.start_time || "")
-                ? `<button class="calendar-btn"
-                    data-name="${e.event_name}"
-                    data-date="${e.event_date}"
-                    data-start="${e.start_time}"
-                    data-end="${e.end_time || ""}"
-                    data-venue="${e.venue || ""}"
-                    data-description="${e.description || ""}">
-                    Add to Calendar
-                  </button>`
-                : ""
-            }
             ${e.registration_url ? `<a href="${e.registration_url}" class="register-btn" target="_blank">Register</a>` : ""}
           </div>
         </div>
@@ -180,10 +166,8 @@ function render(events) {
 
     eventsContainer.appendChild(group);
   });
-
-  attachCalendarListeners();
-  setupCardAnimations();
 }
+
 
 
 // ===========================
@@ -263,9 +247,20 @@ async function initializeApp() {
     const visible = data.filter(e => !isExpired(e));
     render(visible);
   } catch (err) {
-    console.error("App failed:", err);
+    console.error("Fetch failed:", err);
+
+    const eventsContainer = document.querySelector(".events-container");
+    if (eventsContainer) {
+      eventsContainer.innerHTML = `
+        <div class="no-events">
+          <h2>Unable to load events</h2>
+          <p>Please try again later.</p>
+        </div>
+      `;
+    }
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
@@ -275,6 +270,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
