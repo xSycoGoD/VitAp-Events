@@ -40,8 +40,12 @@ body::after {
 }
 
 /* ===========================
-   LOGO
+   HEADER
 =========================== */
+.site-header {
+  position: relative;
+}
+
 .logo-container {
   position: fixed;
   top: 24px;
@@ -55,10 +59,10 @@ body::after {
 }
 
 /* ===========================
-   PAGE WRAPPER
+   WRAPPER
 =========================== */
 .page-wrapper {
-  padding: 90px 20px 80px;
+  padding: 100px 20px 80px;
 }
 
 .content-container {
@@ -78,6 +82,7 @@ body::after {
   font-size: 3.2rem;
   font-weight: 700;
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
@@ -90,45 +95,54 @@ body::after {
 =========================== */
 .layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 32px;
+  grid-template-columns: 300px 1fr;
+  gap: 36px;
   align-items: start;
 }
 
 /* ===========================
-   RECRUITMENT
+   RECRUITMENT RAIL
 =========================== */
 .recruitment-rail {
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
   border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
 }
 
 .rail-title {
   font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
-.recruitment-empty {
-  font-size: 0.95rem;
-  color: #777;
+/* Empty state */
+.recruitment-empty-state {
   text-align: center;
-  padding: 32px 12px;
+  padding: 40px 10px;
+  color: #777;
+  font-size: 0.95rem;
 }
 
+/* Cards */
 .recruitment-group {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .recruitment-card {
   border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
   background: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.recruitment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
 .recruitment-card h3 {
@@ -148,8 +162,13 @@ body::after {
   background: #000;
   color: #fff;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.85rem;
+  transition: 0.2s ease;
+}
+
+.recruitment-card a:hover {
+  background: #222;
 }
 
 /* ===========================
@@ -158,26 +177,39 @@ body::after {
 .events-section {
   display: flex;
   flex-direction: column;
-  gap: 24px;
 }
 
+.events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* Event Cards */
 .event-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px 26px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
   border: 1px solid rgba(0,0,0,0.06);
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(0,0,0,0.08);
 }
 
 .event-name {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .event-description {
   font-size: 0.95rem;
   color: #555;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .event-bottom {
@@ -186,23 +218,29 @@ body::after {
   align-items: center;
   gap: 16px;
   border-top: 1px solid rgba(0,0,0,0.06);
-  padding-top: 14px;
+  padding-top: 16px;
 }
 
 .event-meta {
   display: flex;
-  gap: 18px;
+  gap: 20px;
   font-size: 0.9rem;
   color: #444;
 }
 
-.event-actions a,
-.event-actions button {
+.event-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.register-btn,
+.calendar-btn {
   padding: 9px 18px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .register-btn {
@@ -211,13 +249,27 @@ body::after {
   text-decoration: none;
 }
 
+.register-btn:hover {
+  background: #222;
+}
+
 .calendar-btn {
   background: #f2f2f2;
 }
 
+.calendar-btn:hover {
+  background: #e6e6e6;
+}
+
 /* ===========================
-   EMPTY STATE
+   EMPTY / LOADING STATES
 =========================== */
+.loading-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #777;
+}
+
 .no-events {
   text-align: center;
   padding: 100px 20px;
@@ -234,16 +286,24 @@ body::after {
 =========================== */
 .site-footer {
   margin-top: 80px;
-  padding: 20px;
+  padding: 30px 20px;
   text-align: center;
   font-size: 0.85rem;
   color: #777;
 }
 
 /* ===========================
+   UTILITIES
+=========================== */
+.visually-hidden {
+  position: absolute;
+  left: -9999px;
+}
+
+/* ===========================
    RESPONSIVE
 =========================== */
-@media (max-width: 900px) {
+@media (max-width: 950px) {
   .layout {
     grid-template-columns: 1fr;
   }
@@ -258,6 +318,16 @@ body::after {
 
   .logo-container {
     position: absolute;
+  }
+
+  .event-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .event-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
