@@ -48,7 +48,7 @@ function isExpired(event) {
 
     const end = new Date(dateObj);
 
-    const time = event.time || event.time;
+    const time = event.end || event.start;
     if (/^\d{1,2}:\d{2}/.test(time || "")) {
       const [h, m] = time.split(":").map(Number);
       end.setHours(h, m || 0, 0);
@@ -165,7 +165,7 @@ function render(events) {
         <div class="event-bottom">
           <div class="event-meta">
             ${e.venue ? `<span>📍 ${e.venue}</span>` : ""}
-            ${e.start_time ? `<span>🕒 ${e.start}${e.end_time ? " – " + e.end : ""}</span>` : ""}
+            ${e.start ? `<span>🕒 ${e.start}${e.end ? " – " + e.end : ""}</span>` : ""}
           </div>
 
           <div class="event-actions">
@@ -286,6 +286,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
