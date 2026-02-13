@@ -258,7 +258,7 @@ async function initializeApp() {
   try {
     const data = await fetchEvents();
     const visible = data.filter(e => !isExpired(e));
-    console.log("RAW EVENTS:", events);
+    console.log("RAW EVENTS:", data);
 console.log("VISIBLE EVENTS:", visible);
 
     render(visible);
@@ -286,6 +286,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
