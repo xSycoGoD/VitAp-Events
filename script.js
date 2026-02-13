@@ -43,12 +43,12 @@ function isExpired(event) {
   const now = new Date();
 
   if (event.type === "event") {
-    const dateObj = parseEventDate(event.event_date);
+    const dateObj = parseEventDate(event.date);
     if (!dateObj) return false;
 
     const end = new Date(dateObj);
 
-    const time = event.end_time || event.start_time;
+    const time = event.time || event.time;
     if (/^\d{1,2}:\d{2}/.test(time || "")) {
       const [h, m] = time.split(":").map(Number);
       end.setHours(h, m || 0, 0);
@@ -104,9 +104,9 @@ function render(events) {
       card.className = "recruitment-card";
 
       card.innerHTML = `
-        <h3>${e.event_name}</h3>
+        <h3>${e.name}</h3>
         ${e.description ? `<p>${e.description}</p>` : ""}
-        ${e.registration_url ? `<a href="${e.registration_url}" target="_blank">Register</a>` : ""}
+        ${e.url ? `<a href="${e.url}" target="_blank">Register</a>` : ""}
       `;
 
       recruitmentGroup.appendChild(card);
@@ -130,7 +130,7 @@ function render(events) {
   const grouped = {};
 
   normalEvents.forEach(e => {
-    const key = e.event_date || "__no_date__";
+    const key = e.date || "__no_date__";
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(e);
   });
@@ -157,7 +157,7 @@ function render(events) {
 
       card.innerHTML = `
         <div class="event-top">
-          <h3 class="event-name">${e.event_name}</h3>
+          <h3 class="event-name">${e.name}</h3>
           ${e.club ? `<p class="event-club">${e.club}</p>` : ""}
           ${e.description ? `<p class="event-description">${e.description}</p>` : ""}
         </div>
@@ -165,11 +165,11 @@ function render(events) {
         <div class="event-bottom">
           <div class="event-meta">
             ${e.venue ? `<span>📍 ${e.venue}</span>` : ""}
-            ${e.start_time ? `<span>🕒 ${e.start_time}${e.end_time ? " – " + e.end_time : ""}</span>` : ""}
+            ${e.start_time ? `<span>🕒 ${e.start}${e.end_time ? " – " + e.end : ""}</span>` : ""}
           </div>
 
           <div class="event-actions">
-            ${e.registration_url ? `<a href="${e.registration_url}" class="register-btn" target="_blank">Register</a>` : ""}
+            ${e.url ? `<a href="${e.url}" class="register-btn" target="_blank">Register</a>` : ""}
           </div>
         </div>
       `;
@@ -286,6 +286,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
