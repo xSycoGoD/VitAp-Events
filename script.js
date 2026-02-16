@@ -44,15 +44,18 @@ function isExpired(event) {
 
   if (event.type === "event") {
     const dateObj = parseEventDate(event.date);
-    if (!dateObj) return false;
+    if (!dateObj) return true; // no date → auto expire
 
     const end = new Date(dateObj);
 
     const time = event.end || event.start;
+
     if (/^\d{1,2}:\d{2}/.test(time || "")) {
       const [h, m] = time.split(":").map(Number);
       end.setHours(h, m || 0, 0);
     } else {
+      // 🔥 no time → expire after 3 days
+      end.setDate(end.getDate() + 3);
       end.setHours(23, 59, 59);
     }
 
@@ -63,11 +66,18 @@ function isExpired(event) {
     if (event.deadline) {
       return now > new Date(event.deadline);
     }
-    return false;
+
+    // 🔥 no deadline → expire 7 days after base date
+    const base = new Date(event.date || event.created || now);
+    base.setDate(base.getDate() + 7);
+    base.setHours(23, 59, 59);
+
+    return now > base;
   }
 
-  return false;
+  return true; // unknown type → expire
 }
+
 
 
 // ===========================
@@ -286,6 +296,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
