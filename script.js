@@ -106,47 +106,83 @@ function render(events) {
   const eventsContainer = document.querySelector(".events-container");
   const recruitmentGroup = document.querySelector(".recruitment-group");
 
+  if (!eventsContainer || !recruitmentGroup) return;
+
   eventsContainer.innerHTML = "";
   recruitmentGroup.innerHTML = "";
 
   const recruitments = events.filter(e => e.type === "recruitment");
   const normalEvents = events.filter(e => e.type === "event");
 
-  // --------------------------
+  // =========================
   // Recruitment
-  // --------------------------
+  // =========================
 
   if (recruitments.length === 0) {
-    recruitmentGroup.textContent = "No recruitments right now.";
+    const empty = document.createElement("div");
+    empty.className = "recruitment-empty-state";
+    empty.textContent = "No recruitments right now.";
+    recruitmentGroup.appendChild(empty);
   } else {
     recruitments.forEach(e => {
-      const card = document.createElement("div");
-      card.className = "recruitment-card";
-
-      const title = document.createElement("h3");
-      title.textContent = e.name;
-
-      card.appendChild(title);
-
-      if (e.description) {
-        const p = document.createElement("p");
-        p.textContent = e.description;
-        card.appendChild(p);
-      }
-
-      if (e.url) {
-        const a = document.createElement("a");
-        a.href = e.url;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.textContent = "Register";
-        card.appendChild(a);
-      }
-
-      recruitmentGroup.appendChild(card);
+      recruitmentGroup.appendChild(createRecruitmentCard(e));
     });
   }
 
+  // =========================
+  // Events
+  // =========================
+
+  if (normalEvents.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "no-events";
+    empty.innerHTML = `
+      <h2>No upcoming events</h2>
+      <p>You're all caught up.</p>
+    `;
+    eventsContainer.appendChild(empty);
+    return;
+  }
+
+  const grouped = new Map();
+
+  normalEvents.forEach(e => {
+    const key = e.date || "__no_date__";
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(e);
+  });
+
+  const sortedDates = [...grouped.keys()].sort((a, b) => {
+    if (a === "__no_date__") return 1;
+    if (b === "__no_date__") return -1;
+    return new Date(a) - new Date(b);
+  });
+
+  sortedDates.forEach(date => {
+    const group = document.createElement("div");
+    group.className = "date-group";
+
+    if (date !== "__no_date__") {
+      const heading = document.createElement("h2");
+      heading.className = "date-heading";
+
+      const dateObj = new Date(date);
+      heading.textContent = dateObj.toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "numeric",
+        month: "long"
+      });
+
+      group.appendChild(heading);
+    }
+
+    grouped.get(date).forEach(e => {
+      group.appendChild(createEventCard(e));
+    });
+
+    eventsContainer.appendChild(group);
+  });
+}
   // --------------------------
   // Events
   // --------------------------
@@ -326,6 +362,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/1-IfC9mjG1i9iNp07HLXQ3gBw1suSxVekQ42UUOwzTJs/edit?usp=sharing
+
 
 
 
