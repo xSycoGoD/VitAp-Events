@@ -9,6 +9,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 80px;
 }
 
 body {
@@ -73,7 +74,7 @@ body::after {
 }
 
 .main-title {
-  font-size: 3rem;
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
   margin-bottom: 10px;
 }
@@ -114,12 +115,22 @@ body::after {
   gap: 16px;
 }
 
+.recruitment-group:empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: #777;
+  font-size: 0.95rem;
+}
+
 .recruitment-card {
   background: #fafafa;
   border-radius: 14px;
   padding: 16px;
   border: 1px solid rgba(0,0,0,0.08);
   transition: 0.2s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.4s ease forwards;
 }
 
 .recruitment-card:hover {
@@ -177,10 +188,9 @@ body::after {
   gap: 26px;
 }
 
-/* Highlight Today's events */
 .today-section .event-card {
-  border: 1px solid #000;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.15);
+  background: #fff;
 }
 
 /* Event Card */
@@ -191,11 +201,22 @@ body::after {
   border: 1px solid rgba(0,0,0,0.06);
   box-shadow: 0 6px 20px rgba(0,0,0,0.03);
   transition: 0.25s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.4s ease forwards;
 }
 
 .event-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 14px 32px rgba(0,0,0,0.08);
+}
+
+.date-heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  margin-top: 10px;
 }
 
 .event-name {
@@ -265,6 +286,21 @@ body::after {
   background: #e6e6e6;
 }
 
+.register-btn:active,
+.calendar-btn:active {
+  transform: scale(0.97);
+}
+
+/* ===========================
+   LOADING
+=========================== */
+.loading-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #777;
+  font-size: 0.95rem;
+}
+
 /* ===========================
    FOOTER
 =========================== */
@@ -274,6 +310,16 @@ body::after {
   text-align: center;
   font-size: 0.85rem;
   color: #777;
+}
+
+/* ===========================
+   ANIMATION
+=========================== */
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ===========================
@@ -305,5 +351,3 @@ body::after {
     width: 100%;
   }
 }
-
-
