@@ -5,56 +5,76 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9HsaqGKzZt61L2ofJTcdrp1FqiMqCJIJcy-e7AqBxjeDSn60LhQv9chhbmxRPrsw/exec";
 
 
+// ===========================
+// FETCH
+// ===========================
+
 async function fetchEvents() {
-  const res = await fetch(SCRIPT_URL);
+  const res = await fetch(SCRIPT_URL, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch data");
 
   const data = await res.json();
 
   return data.map(row => ({
-    name: row.event_name || "",
-    date: row.event_date || "",
-    start: row.start_time || "",
-    end: row.end_time || "",
-    venue: row.venue || "",
-    club: row.club || "",
-    description: row.description || "",
-    url: row.registration_url || "",
-    od: row.od_status || "",
-    type: row.type || "event",
-    deadline: row.deadline || "",
-    createdAt: row.created_at || ""
+    name: row.event_name ?? "",
+    date: row.event_date ?? "",
+    start: row.start_time ?? "",
+    end: row.end_time ?? "",
+    venue: row.venue ?? "",
+    club: row.club ?? "",
+    description: row.description ?? "",
+    url: row.url ?? "",
+    od: row.od ?? "",
+    type: row.type ?? "event",
+    deadline: row.deadline ?? "",
+    createdAt: row.created ?? ""
   }));
 }
-
 
 
 // ===========================
 // DATE UTILITIES
 // ===========================
 
-function parseEventDate(dateStr) {
-  if (!dateStr) return null;
+function parseDate(dateStr) {
   const d = new Date(dateStr);
   return isNaN(d.getTime()) ? null : d;
+}
+
+function convertTo24Hour(timeStr) {
+  if (!timeStr) return null;
+
+  const match = timeStr.match(/(\d{1,2})(?::(\d{2}))?\s?(AM|PM|am|pm)/);
+  if (!match) return null;
+
+  let hour = parseInt(match[1]);
+  const minutes = match[2] ? parseInt(match[2]) : 0;
+  const period = match[3].toLowerCase();
+
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+
+  return {
+    hour: String(hour).padStart(2, "0"),
+    minute: String(minutes).padStart(2, "0")
+  };
 }
 
 function isExpired(event) {
   const now = new Date();
 
   if (event.type === "event") {
-    const dateObj = parseEventDate(event.date);
-    if (!dateObj) return true; // no date → auto expire
+    const dateObj = parseDate(event.date);
+    if (!dateObj) return true;
 
     const end = new Date(dateObj);
 
     const time = event.end || event.start;
+    const t = convertTo24Hour(time);
 
-    if (/^\d{1,2}:\d{2}/.test(time || "")) {
-      const [h, m] = time.split(":").map(Number);
-      end.setHours(h, m || 0, 0);
+    if (t) {
+      end.setHours(parseInt(t.hour), parseInt(t.minute), 0);
     } else {
-      // 🔥 no time → expire after 3 days
       end.setDate(end.getDate() + 3);
       end.setHours(23, 59, 59);
     }
@@ -67,124 +87,104 @@ function isExpired(event) {
       return now > new Date(event.deadline);
     }
 
-    // 🔥 no deadline → expire 7 days after base date
-    const base = new Date(event.date || event.created || now);
+    const base = new Date(event.date || event.createdAt || now);
     base.setDate(base.getDate() + 7);
     base.setHours(23, 59, 59);
 
     return now > base;
   }
 
-  return true; // unknown type → expire
+  return true;
 }
 
 
-
 // ===========================
-// RENDER FUNCTION
+// RENDER
 // ===========================
 
 function render(events) {
   const eventsContainer = document.querySelector(".events-container");
   const recruitmentGroup = document.querySelector(".recruitment-group");
 
-  if (!eventsContainer || !recruitmentGroup) return;
-
-  // Reset
   eventsContainer.innerHTML = "";
   recruitmentGroup.innerHTML = "";
 
   const recruitments = events.filter(e => e.type === "recruitment");
   const normalEvents = events.filter(e => e.type === "event");
 
-  // ==========================
-  // RECRUITMENT
-  // ==========================
+  // --------------------------
+  // Recruitment
+  // --------------------------
 
   if (recruitments.length === 0) {
-    recruitmentGroup.innerHTML = `
-      <div class="recruitment-empty-state">
-        <p>No recruitments right now.</p>
-        <small>Check back later.</small>
-      </div>
-    `;
+    recruitmentGroup.textContent = "No recruitments right now.";
   } else {
     recruitments.forEach(e => {
       const card = document.createElement("div");
       card.className = "recruitment-card";
 
-      card.innerHTML = `
-        <h3>${e.name}</h3>
-        ${e.description ? `<p>${e.description}</p>` : ""}
-        ${e.url ? `<a href="${e.url}" target="_blank">Register</a>` : ""}
-      `;
+      const title = document.createElement("h3");
+      title.textContent = e.name;
+
+      card.appendChild(title);
+
+      if (e.description) {
+        const p = document.createElement("p");
+        p.textContent = e.description;
+        card.appendChild(p);
+      }
+
+      if (e.url) {
+        const a = document.createElement("a");
+        a.href = e.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = "Register";
+        card.appendChild(a);
+      }
 
       recruitmentGroup.appendChild(card);
     });
   }
 
-  // ==========================
-  // EVENTS
-  // ==========================
+  // --------------------------
+  // Events
+  // --------------------------
 
-  if (normalEvents.length === 0) {
-    eventsContainer.innerHTML = `
-      <div class="no-events">
-        <h2>No events right now</h2>
-        <p>Come back later for new updates.</p>
-      </div>
-    `;
-    return;
-  }
-
-  const grouped = {};
+  const grouped = new Map();
 
   normalEvents.forEach(e => {
     const key = e.date || "__no_date__";
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(e);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(e);
   });
 
-  Object.entries(grouped).forEach(([date, list]) => {
+  const sortedDates = [...grouped.keys()].sort((a, b) => {
+    if (a === "__no_date__") return 1;
+    if (b === "__no_date__") return -1;
+    return new Date(a) - new Date(b);
+  });
+
+  sortedDates.forEach(date => {
     const group = document.createElement("div");
     group.className = "date-group";
 
-    const dateObj = parseEventDate(date);
-    if (dateObj) {
+    if (date !== "__no_date__") {
       const heading = document.createElement("h2");
       heading.className = "date-heading";
+
+      const dateObj = new Date(date);
       heading.textContent = dateObj.toLocaleDateString(undefined, {
         weekday: "long",
         day: "numeric",
         month: "long"
       });
+
       group.appendChild(heading);
     }
 
-    list.forEach(e => {
-      const card = document.createElement("div");
-      card.className = "event-card";
-
-      card.innerHTML = `
-        <div class="event-top">
-          <h3 class="event-name">${e.name}</h3>
-          ${e.club ? `<p class="event-club">${e.club}</p>` : ""}
-          ${e.description ? `<p class="event-description">${e.description}</p>` : ""}
-        </div>
-
-        <div class="event-bottom">
-          <div class="event-meta">
-            ${e.venue ? `<span>📍 ${e.venue}</span>` : ""}
-            ${e.start ? `<span>🕒 ${e.start}${e.end ? " – " + e.end : ""}</span>` : ""}
-          </div>
-
-          <div class="event-actions">
-            ${e.url ? `<a href="${e.url}" class="register-btn" target="_blank">Register</a>` : ""}
-          </div>
-        </div>
-      `;
-
-      group.appendChild(card);
+    grouped.get(date).forEach(e => {
+      group.appendChild(createEventCard(e));
     });
 
     eventsContainer.appendChild(group);
@@ -192,110 +192,141 @@ function render(events) {
 }
 
 
-
 // ===========================
-// CALENDAR SUPPORT
+// EVENT CARD BUILDER
 // ===========================
 
-function normalizeEndTime(start, end) {
-  if (end && /^\d{1,2}:\d{2}/.test(end)) return end;
-  const [h, m] = start.split(":").map(Number);
-  return `${String(h + 1).padStart(2, "0")}:${String(m || 0).padStart(2, "0")}`;
+function createEventCard(e) {
+  const card = document.createElement("div");
+  card.className = "event-card";
+
+  const top = document.createElement("div");
+  top.className = "event-top";
+
+  const name = document.createElement("h3");
+  name.className = "event-name";
+  name.textContent = e.name;
+
+  top.appendChild(name);
+
+  if (e.club) {
+    const club = document.createElement("p");
+    club.className = "event-club";
+    club.textContent = e.club;
+    top.appendChild(club);
+  }
+
+  if (e.description) {
+    const desc = document.createElement("p");
+    desc.className = "event-description";
+    desc.textContent = e.description;
+    top.appendChild(desc);
+  }
+
+  const bottom = document.createElement("div");
+  bottom.className = "event-bottom";
+
+  const meta = document.createElement("div");
+  meta.className = "event-meta";
+
+  if (e.venue) {
+    const venue = document.createElement("span");
+    venue.textContent = `📍 ${e.venue}`;
+    meta.appendChild(venue);
+  }
+
+  if (e.start) {
+    const time = document.createElement("span");
+    time.textContent = `🕒 ${e.start}${e.end ? " – " + e.end : ""}`;
+    meta.appendChild(time);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "event-actions";
+
+  if (e.url) {
+    const link = document.createElement("a");
+    link.href = e.url;
+    link.className = "register-btn";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Register";
+    actions.appendChild(link);
+  }
+
+  if (e.date && e.start) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "calendar-btn";
+    btn.textContent = "Add to Calendar";
+
+    btn.addEventListener("click", () => addToCalendar(e));
+    actions.appendChild(btn);
+  }
+
+  bottom.appendChild(meta);
+  bottom.appendChild(actions);
+
+  card.appendChild(top);
+  card.appendChild(bottom);
+
+  return card;
 }
 
-function formatDateTime(date, time) {
-  const [y, m, d] = date.split("-");
-  const [h, min] = time.split(":");
-  return `${y}${m}${d}T${h}${min}00`;
-}
 
-function addToCalendar(btn) {
-  const start = btn.dataset.start;
-  const end = normalizeEndTime(start, btn.dataset.end);
+// ===========================
+// GOOGLE CALENDAR
+// ===========================
 
-  const startDT = formatDateTime(btn.dataset.date, start);
-  const endDT = formatDateTime(btn.dataset.date, end);
+function addToCalendar(event) {
+  const startParts = convertTo24Hour(event.start);
+  if (!startParts) return;
+
+  const endParts = convertTo24Hour(event.end) || {
+    hour: String(parseInt(startParts.hour) + 1).padStart(2, "0"),
+    minute: startParts.minute
+  };
+
+  const [y, m, d] = event.date.split("-");
+
+  const startDT = `${y}${m}${d}T${startParts.hour}${startParts.minute}00`;
+  const endDT = `${y}${m}${d}T${endParts.hour}${endParts.minute}00`;
 
   const params = new URLSearchParams({
     action: "TEMPLATE",
-    text: btn.dataset.name,
+    text: event.name,
     dates: `${startDT}/${endDT}`,
-    details: btn.dataset.description,
-    location: btn.dataset.venue
+    details: event.description,
+    location: event.venue
   });
 
-  window.open(`https://calendar.google.com/calendar/render?${params}`, "_blank");
-}
-
-function attachCalendarListeners() {
-  document.querySelectorAll(".calendar-btn").forEach(btn => {
-    btn.onclick = e => {
-      e.preventDefault();
-      addToCalendar(btn);
-    };
-  });
+  window.open(
+    `https://calendar.google.com/calendar/render?${params}`,
+    "_blank"
+  );
 }
 
 
 // ===========================
-// ANIMATIONS
-// ===========================
-
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.style.opacity = "1";
-      e.target.style.transform = "translateY(0)";
-    }
-  });
-}, { threshold: 0.1 });
-
-function setupCardAnimations() {
-  document.querySelectorAll(".event-card, .recruitment-card").forEach(card => {
-    card.style.opacity = "0";
-    card.style.transform = "translateY(20px)";
-    card.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-    observer.observe(card);
-  });
-}
-
-
-// ===========================
-// INITIALIZATION
+// INIT
 // ===========================
 
 async function initializeApp() {
   try {
     const data = await fetchEvents();
     const visible = data.filter(e => !isExpired(e));
-    //console.log("RAW EVENTS:", data);
-//console.log("VISIBLE EVENTS:", visible);
-
     render(visible);
   } catch (err) {
-    console.error("Fetch failed:", err);
-
-    const eventsContainer = document.querySelector(".events-container");
-    if (eventsContainer) {
-      eventsContainer.innerHTML = `
-        <div class="no-events">
-          <h2>Unable to load events</h2>
-          <p>Please try again later.</p>
-        </div>
-      `;
-    }
+    console.error(err);
   }
 }
 
-
 document.addEventListener("DOMContentLoaded", initializeApp);
-
-
-
 // IF you have made it this far 
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/1-IfC9mjG1i9iNp07HLXQ3gBw1suSxVekQ42UUOwzTJs/edit?usp=sharing
+
 
 
 
