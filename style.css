@@ -1,6 +1,25 @@
 /* ===========================
    RESET
 =========================== */
+
+
+.no-events {
+  text-align: center;
+  padding: 80px 20px;
+  color: #666;
+}
+
+.no-events h2 {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+.recruitment-empty-state {
+  text-align: center;
+  padding: 40px 10px;
+  color: #777;
+  font-size: 0.95rem;
+}
 * {
   margin: 0;
   padding: 0;
@@ -351,3 +370,4 @@ body::after {
     width: 100%;
   }
 }
+
