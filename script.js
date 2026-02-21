@@ -2,7 +2,7 @@
 // CONFIG
 // ===========================
 
-const SCRIPT_URL = "https://script.google.com/a/macros/vitapstudent.ac.in/s/AKfycby9HsaqGKzZt61L2ofJTcdrp1FqiMqCJIJcy-e7AqBxjeDSn60LhQv9chhbmxRPrsw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9HsaqGKzZt61L2ofJTcdrp1FqiMqCJIJcy-e7AqBxjeDSn60LhQv9chhbmxRPrsw/exec";
 
 
 async function fetchEvents() {
@@ -296,6 +296,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/19pc9UlkORblpaGOCn8qQw2yH-Afu3lSJzfeP_dzej8U/edit?usp=sharing
+
 
 
 
