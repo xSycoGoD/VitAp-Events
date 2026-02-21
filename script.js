@@ -6,7 +6,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9HsaqGKzZt61L2ofJT
 
 
 // ===========================
-// FETCH
+// FETCH EVENTS
 // ===========================
 
 async function fetchEvents() {
@@ -33,7 +33,7 @@ async function fetchEvents() {
 
 
 // ===========================
-// DATE UTILITIES
+// DATE + TIME UTILITIES
 // ===========================
 
 function parseDate(dateStr) {
@@ -99,138 +99,34 @@ function isExpired(event) {
 
 
 // ===========================
-// RENDER
+// RENDER HELPERS
 // ===========================
 
-function render(events) {
-  const eventsContainer = document.querySelector(".events-container");
-  const recruitmentGroup = document.querySelector(".recruitment-group");
+function createRecruitmentCard(e) {
+  const card = document.createElement("div");
+  card.className = "recruitment-card";
 
-  if (!eventsContainer || !recruitmentGroup) return;
+  const title = document.createElement("h3");
+  title.textContent = e.name;
+  card.appendChild(title);
 
-  eventsContainer.innerHTML = "";
-  recruitmentGroup.innerHTML = "";
-
-  const recruitments = events.filter(e => e.type === "recruitment");
-  const normalEvents = events.filter(e => e.type === "event");
-
-  // =========================
-  // Recruitment
-  // =========================
-
-  if (recruitments.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "recruitment-empty-state";
-    empty.textContent = "No recruitments right now.";
-    recruitmentGroup.appendChild(empty);
-  } else {
-    recruitments.forEach(e => {
-      recruitmentGroup.appendChild(createRecruitmentCard(e));
-    });
+  if (e.description) {
+    const p = document.createElement("p");
+    p.textContent = e.description;
+    card.appendChild(p);
   }
 
-  // =========================
-  // Events
-  // =========================
-
-  if (normalEvents.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "no-events";
-    empty.innerHTML = `
-      <h2>No upcoming events</h2>
-      <p>You're all caught up.</p>
-    `;
-    eventsContainer.appendChild(empty);
-    return;
+  if (e.url) {
+    const a = document.createElement("a");
+    a.href = e.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = "Register";
+    card.appendChild(a);
   }
 
-  const grouped = new Map();
-
-  normalEvents.forEach(e => {
-    const key = e.date || "__no_date__";
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key).push(e);
-  });
-
-  const sortedDates = [...grouped.keys()].sort((a, b) => {
-    if (a === "__no_date__") return 1;
-    if (b === "__no_date__") return -1;
-    return new Date(a) - new Date(b);
-  });
-
-  sortedDates.forEach(date => {
-    const group = document.createElement("div");
-    group.className = "date-group";
-
-    if (date !== "__no_date__") {
-      const heading = document.createElement("h2");
-      heading.className = "date-heading";
-
-      const dateObj = new Date(date);
-      heading.textContent = dateObj.toLocaleDateString(undefined, {
-        weekday: "long",
-        day: "numeric",
-        month: "long"
-      });
-
-      group.appendChild(heading);
-    }
-
-    grouped.get(date).forEach(e => {
-      group.appendChild(createEventCard(e));
-    });
-
-    eventsContainer.appendChild(group);
-  });
+  return card;
 }
-  // --------------------------
-  // Events
-  // --------------------------
-
-  const grouped = new Map();
-
-  normalEvents.forEach(e => {
-    const key = e.date || "__no_date__";
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key).push(e);
-  });
-
-  const sortedDates = [...grouped.keys()].sort((a, b) => {
-    if (a === "__no_date__") return 1;
-    if (b === "__no_date__") return -1;
-    return new Date(a) - new Date(b);
-  });
-
-  sortedDates.forEach(date => {
-    const group = document.createElement("div");
-    group.className = "date-group";
-
-    if (date !== "__no_date__") {
-      const heading = document.createElement("h2");
-      heading.className = "date-heading";
-
-      const dateObj = new Date(date);
-      heading.textContent = dateObj.toLocaleDateString(undefined, {
-        weekday: "long",
-        day: "numeric",
-        month: "long"
-      });
-
-      group.appendChild(heading);
-    }
-
-    grouped.get(date).forEach(e => {
-      group.appendChild(createEventCard(e));
-    });
-
-    eventsContainer.appendChild(group);
-  });
-}
-
-
-// ===========================
-// EVENT CARD BUILDER
-// ===========================
 
 function createEventCard(e) {
   const card = document.createElement("div");
@@ -242,7 +138,6 @@ function createEventCard(e) {
   const name = document.createElement("h3");
   name.className = "event-name";
   name.textContent = e.name;
-
   top.appendChild(name);
 
   if (e.club) {
@@ -295,7 +190,6 @@ function createEventCard(e) {
     btn.type = "button";
     btn.className = "calendar-btn";
     btn.textContent = "Add to Calendar";
-
     btn.addEventListener("click", () => addToCalendar(e));
     actions.appendChild(btn);
   }
@@ -307,6 +201,107 @@ function createEventCard(e) {
   card.appendChild(bottom);
 
   return card;
+}
+
+
+// ===========================
+// RENDER SECTIONS
+// ===========================
+
+function renderToday(events) {
+  const container = document.querySelector(".today-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (events.length === 0) {
+    container.innerHTML = `
+      <div class="no-events">
+        <p>No events today.</p>
+      </div>
+    `;
+    return;
+  }
+
+  events.forEach(e => {
+    container.appendChild(createEventCard(e));
+  });
+}
+
+function render(events) {
+  const eventsContainer = document.querySelector(".events-container");
+  const recruitmentGroup = document.querySelector(".recruitment-group");
+
+  if (!eventsContainer || !recruitmentGroup) return;
+
+  eventsContainer.innerHTML = "";
+  recruitmentGroup.innerHTML = "";
+
+  const recruitments = events.filter(e => e.type === "recruitment");
+  const normalEvents = events.filter(e => e.type === "event");
+
+  // Recruitment
+  if (recruitments.length === 0) {
+    recruitmentGroup.innerHTML = `
+      <div class="recruitment-empty-state">
+        No recruitments right now.
+      </div>
+    `;
+  } else {
+    recruitments.forEach(e => {
+      recruitmentGroup.appendChild(createRecruitmentCard(e));
+    });
+  }
+
+  // Events
+  if (normalEvents.length === 0) {
+    eventsContainer.innerHTML = `
+      <div class="no-events">
+        <h2>No upcoming events</h2>
+        <p>Check back later for updates.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const grouped = new Map();
+
+  normalEvents.forEach(e => {
+    const key = e.date || "__no_date__";
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(e);
+  });
+
+  const sortedDates = [...grouped.keys()].sort((a, b) => {
+    if (a === "__no_date__") return 1;
+    if (b === "__no_date__") return -1;
+    return new Date(a) - new Date(b);
+  });
+
+  sortedDates.forEach(date => {
+    const group = document.createElement("div");
+    group.className = "date-group";
+
+    if (date !== "__no_date__") {
+      const heading = document.createElement("h2");
+      heading.className = "date-heading";
+
+      const dateObj = new Date(date);
+      heading.textContent = dateObj.toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "numeric",
+        month: "long"
+      });
+
+      group.appendChild(heading);
+    }
+
+    grouped.get(date).forEach(e => {
+      group.appendChild(createEventCard(e));
+    });
+
+    eventsContainer.appendChild(group);
+  });
 }
 
 
@@ -351,9 +346,42 @@ async function initializeApp() {
   try {
     const data = await fetchEvents();
     const visible = data.filter(e => !isExpired(e));
-    render(visible);
+
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const todayEvents = visible.filter(e => e.date === todayStr);
+    const futureEvents = visible.filter(e => e.date !== todayStr);
+
+    const todayContainer = document.querySelector(".today-container");
+    const eventsContainer = document.querySelector(".events-container");
+
+    // MASTER EMPTY CHECK
+    if (visible.length === 0) {
+      todayContainer.innerHTML = "";
+      eventsContainer.innerHTML = `
+        <div class="no-events">
+          <h2>No upcoming events</h2>
+          <p>Check back later for updates.</p>
+        </div>
+      `;
+      return;
+    }
+
+    renderToday(todayEvents);
+    render(futureEvents);
+
   } catch (err) {
     console.error(err);
+
+    const eventsContainer = document.querySelector(".events-container");
+    if (eventsContainer) {
+      eventsContainer.innerHTML = `
+        <div class="no-events">
+          <h2>Unable to load events</h2>
+          <p>Please try again later.</p>
+        </div>
+      `;
+    }
   }
 }
 
@@ -362,6 +390,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/1-IfC9mjG1i9iNp07HLXQ3gBw1suSxVekQ42UUOwzTJs/edit?usp=sharing
+
 
 
 
