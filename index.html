@@ -7,7 +7,7 @@
   <title>Campus Events · VIT-AP</title>
   <meta name="description" content="Official campus events and recruitment opportunities at VIT-AP." />
 
-  <!-- SEO -->
+  <!-- Open Graph -->
   <meta property="og:title" content="Campus Events · VIT-AP" />
   <meta property="og:description" content="Stay updated with official events and recruitment opportunities at VIT-AP." />
   <meta property="og:type" content="website" />
@@ -22,7 +22,6 @@
 
 <body>
 
-  <!-- Header -->
   <header class="site-header">
     <div class="logo-container">
       <img src="vitap-logo.png" alt="VIT-AP University Logo" class="logo" />
@@ -44,17 +43,28 @@
       <section class="layout">
 
         <!-- Recruitment Rail -->
-        <aside class="recruitment-rail">
-          <h2 class="rail-title">Recruitment</h2>
+        <aside class="recruitment-rail" aria-labelledby="recruitment-heading">
+          <h2 id="recruitment-heading" class="rail-title">Recruitment</h2>
           <div class="recruitment-group"></div>
         </aside>
 
-        <!-- Events Section -->
-        <section class="events-container">
-          <div id="events-empty" class="no-events" style="display:none;">
-            <h2>No upcoming events</h2>
-            <p>You're all caught up.</p>
-          </div>
+        <!-- Events Area -->
+        <section class="events-section">
+
+          <!-- Today's Events -->
+          <section class="today-section" aria-labelledby="today-heading">
+            <h2 id="today-heading" class="section-heading">Today</h2>
+            <div class="today-container"></div>
+          </section>
+
+          <!-- All Events -->
+          <section aria-labelledby="all-events-heading">
+            <h2 id="all-events-heading" class="section-heading visually-hidden">
+              All Events
+            </h2>
+            <div class="events-container"></div>
+          </section>
+
         </section>
 
       </section>
@@ -69,9 +79,6 @@
   </footer>
 
   <script src="script.js" defer></script>
-
 </body>
 </html>
-
-
 
