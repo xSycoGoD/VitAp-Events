@@ -68,7 +68,6 @@ function isExpired(event) {
     if (!dateObj) return true;
 
     const end = new Date(dateObj);
-
     const time = event.end || event.start;
     const t = convertTo24Hour(time);
 
@@ -99,8 +98,13 @@ function isExpired(event) {
 
 
 // ===========================
-// RENDER HELPERS
+// CARD BUILDERS
 // ===========================
+
+function cleanDescription(text) {
+  if (!text) return "";
+  return text.replace(/\[image:[^\]]+\]/gi, "").trim();
+}
 
 function createRecruitmentCard(e) {
   const card = document.createElement("div");
@@ -110,9 +114,11 @@ function createRecruitmentCard(e) {
   title.textContent = e.name;
   card.appendChild(title);
 
-  if (e.description) {
+  const cleanDesc = cleanDescription(e.description);
+
+  if (cleanDesc) {
     const p = document.createElement("p");
-    p.textContent = e.description;
+    p.textContent = cleanDesc;
     card.appendChild(p);
   }
 
@@ -147,10 +153,12 @@ function createEventCard(e) {
     top.appendChild(club);
   }
 
-  if (e.description) {
+  const cleanDesc = cleanDescription(e.description);
+
+  if (cleanDesc) {
     const desc = document.createElement("p");
     desc.className = "event-description";
-    desc.textContent = e.description;
+    desc.textContent = cleanDesc;
     top.appendChild(desc);
   }
 
@@ -205,8 +213,28 @@ function createEventCard(e) {
 
 
 // ===========================
-// RENDER SECTIONS
+// RENDERING
 // ===========================
+
+function renderRecruitments(events) {
+  const container = document.querySelector(".recruitment-group");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (events.length === 0) {
+    container.innerHTML = `
+      <div class="recruitment-empty-state">
+        No recruitments right now.
+      </div>
+    `;
+    return;
+  }
+
+  events.forEach(e => {
+    container.appendChild(createRecruitmentCard(e));
+  });
+}
 
 function renderToday(events) {
   const container = document.querySelector(".today-container");
@@ -228,34 +256,14 @@ function renderToday(events) {
   });
 }
 
-function render(events) {
-  const eventsContainer = document.querySelector(".events-container");
-  const recruitmentGroup = document.querySelector(".recruitment-group");
+function renderFuture(events) {
+  const container = document.querySelector(".events-container");
+  if (!container) return;
 
-  if (!eventsContainer || !recruitmentGroup) return;
+  container.innerHTML = "";
 
-  eventsContainer.innerHTML = "";
-  recruitmentGroup.innerHTML = "";
-
-  const recruitments = events.filter(e => e.type === "recruitment");
-  const normalEvents = events.filter(e => e.type === "event");
-
-  // Recruitment
-  if (recruitments.length === 0) {
-    recruitmentGroup.innerHTML = `
-      <div class="recruitment-empty-state">
-        No recruitments right now.
-      </div>
-    `;
-  } else {
-    recruitments.forEach(e => {
-      recruitmentGroup.appendChild(createRecruitmentCard(e));
-    });
-  }
-
-  // Events
-  if (normalEvents.length === 0) {
-    eventsContainer.innerHTML = `
+  if (events.length === 0) {
+    container.innerHTML = `
       <div class="no-events">
         <h2>No upcoming events</h2>
         <p>Check back later for updates.</p>
@@ -266,7 +274,7 @@ function render(events) {
 
   const grouped = new Map();
 
-  normalEvents.forEach(e => {
+  events.forEach(e => {
     const key = e.date || "__no_date__";
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key).push(e);
@@ -300,7 +308,7 @@ function render(events) {
       group.appendChild(createEventCard(e));
     });
 
-    eventsContainer.appendChild(group);
+    container.appendChild(group);
   });
 }
 
@@ -347,41 +355,45 @@ async function initializeApp() {
     const data = await fetchEvents();
     const visible = data.filter(e => !isExpired(e));
 
-    const todayStr = new Date().toISOString().split("T")[0];
-
-    const todayEvents = visible.filter(e => e.date === todayStr);
-    const futureEvents = visible.filter(e => e.date !== todayStr);
-
-    const todayContainer = document.querySelector(".today-container");
-    const eventsContainer = document.querySelector(".events-container");
-
-    // MASTER EMPTY CHECK
     if (visible.length === 0) {
-      todayContainer.innerHTML = "";
-      eventsContainer.innerHTML = `
+      document.querySelector(".today-container").innerHTML = "";
+      document.querySelector(".events-container").innerHTML = `
         <div class="no-events">
           <h2>No upcoming events</h2>
           <p>Check back later for updates.</p>
         </div>
       `;
+      renderRecruitments([]);
       return;
     }
 
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const todayEvents = visible.filter(
+      e => e.type === "event" && e.date === todayStr
+    );
+
+    const futureEvents = visible.filter(
+      e => e.type === "event" && e.date !== todayStr
+    );
+
+    const recruitments = visible.filter(
+      e => e.type === "recruitment"
+    );
+
+    renderRecruitments(recruitments);
     renderToday(todayEvents);
-    render(futureEvents);
+    renderFuture(futureEvents);
 
   } catch (err) {
     console.error(err);
 
-    const eventsContainer = document.querySelector(".events-container");
-    if (eventsContainer) {
-      eventsContainer.innerHTML = `
-        <div class="no-events">
-          <h2>Unable to load events</h2>
-          <p>Please try again later.</p>
-        </div>
-      `;
-    }
+    document.querySelector(".events-container").innerHTML = `
+      <div class="no-events">
+        <h2>Unable to load events</h2>
+        <p>Please try again later.</p>
+      </div>
+    `;
   }
 }
 
@@ -390,6 +402,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/1-IfC9mjG1i9iNp07HLXQ3gBw1suSxVekQ42UUOwzTJs/edit?usp=sharing
+
 
 
 
