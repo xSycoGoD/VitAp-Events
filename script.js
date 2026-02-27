@@ -71,11 +71,13 @@ function isExpired(event) {
     const time = event.end || event.start;
     const t = convertTo24Hour(time);
 
+    // If time exists → expire at exact time
     if (t) {
-      end.setHours(parseInt(t.hour), parseInt(t.minute), 0);
-    } else {
-      end.setDate(end.getDate() + 3);
-      end.setHours(23, 59, 59);
+      end.setHours(parseInt(t.hour), parseInt(t.minute), 0, 0);
+    } 
+    // No time → expire end of that day
+    else {
+      end.setHours(23, 59, 59, 999);
     }
 
     return now > end;
@@ -83,19 +85,20 @@ function isExpired(event) {
 
   if (event.type === "recruitment") {
     if (event.deadline) {
-      return now > new Date(event.deadline);
+      const deadline = new Date(event.deadline);
+      deadline.setHours(23, 59, 59, 999);
+      return now > deadline;
     }
 
     const base = new Date(event.date || event.createdAt || now);
     base.setDate(base.getDate() + 7);
-    base.setHours(23, 59, 59);
+    base.setHours(23, 59, 59, 999);
 
     return now > base;
   }
 
   return true;
 }
-
 
 // ===========================
 // CARD BUILDERS
@@ -402,6 +405,7 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 //copy this link and paste it as a url 
 //you can view events that have been logged after this project has been created 
 //https://docs.google.com/spreadsheets/d/1-IfC9mjG1i9iNp07HLXQ3gBw1suSxVekQ42UUOwzTJs/edit?usp=sharing
+
 
 
 
