@@ -9,26 +9,83 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9HsaqGKzZt61L2ofJT
 // FETCH EVENTS
 // ===========================
 
+const CACHE_KEY = "events_cache";
+const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
+
 async function fetchEvents() {
-  const res = await fetch(SCRIPT_URL, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch data");
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cachedTime = localStorage.getItem(CACHE_KEY + "_time");
 
-  const data = await res.json();
+    // ✅ Use cache if still valid
+    if (cached && cachedTime && (Date.now() - cachedTime < CACHE_TIME)) {
+      console.log("Using cached data");
+      return JSON.parse(cached).map(row => ({
+        name: row.event_name ?? "",
+        date: row.event_date ?? "",
+        start: row.start_time ?? "",
+        end: row.end_time ?? "",
+        venue: row.venue ?? "",
+        club: row.club ?? "",
+        description: row.description ?? "",
+        url: row.url ?? "",
+        od: row.od ?? "",
+        type: row.type ?? "event",
+        deadline: row.deadline ?? "",
+        createdAt: row.created ?? ""
+      }));
+    }
 
-  return data.map(row => ({
-    name: row.event_name ?? "",
-    date: row.event_date ?? "",
-    start: row.start_time ?? "",
-    end: row.end_time ?? "",
-    venue: row.venue ?? "",
-    club: row.club ?? "",
-    description: row.description ?? "",
-    url: row.url ?? "",
-    od: row.od ?? "",
-    type: row.type ?? "event",
-    deadline: row.deadline ?? "",
-    createdAt: row.created ?? ""
-  }));
+    // 🔄 Fetch fresh data
+    const res = await fetch(SCRIPT_URL);
+    if (!res.ok) throw new Error("Failed to fetch data");
+
+    const data = await res.json();
+
+    // 💾 Save raw data to cache
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_KEY + "_time", Date.now());
+
+    console.log("Fetched fresh data");
+
+    return data.map(row => ({
+      name: row.event_name ?? "",
+      date: row.event_date ?? "",
+      start: row.start_time ?? "",
+      end: row.end_time ?? "",
+      venue: row.venue ?? "",
+      club: row.club ?? "",
+      description: row.description ?? "",
+      url: row.url ?? "",
+      od: row.od ?? "",
+      type: row.type ?? "event",
+      deadline: row.deadline ?? "",
+      createdAt: row.created ?? ""
+    }));
+
+  } catch (err) {
+    console.error("Fetch failed, trying cache:", err);
+
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached).map(row => ({
+        name: row.event_name ?? "",
+        date: row.event_date ?? "",
+        start: row.start_time ?? "",
+        end: row.end_time ?? "",
+        venue: row.venue ?? "",
+        club: row.club ?? "",
+        description: row.description ?? "",
+        url: row.url ?? "",
+        od: row.od ?? "",
+        type: row.type ?? "event",
+        deadline: row.deadline ?? "",
+        createdAt: row.created ?? ""
+      }));
+    }
+
+    throw err;
+  }
 }
 
 
